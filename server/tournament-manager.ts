@@ -14,13 +14,17 @@ import {
  */
 export class TournamentManager {
   private repository: ITournamentRepository;
+  private timerInterval: NodeJS.Timeout | null = null;
+  private onStateChange?: (state: TournamentState) => void;
 
   /**
    * Constructor accepts ITournamentRepository for dependency injection
    * @param repository - Any implementation of ITournamentRepository
+   * @param onStateChange - Optional callback for state changes (used for broadcasting)
    */
-  constructor(repository: ITournamentRepository) {
+  constructor(repository: ITournamentRepository, onStateChange?: (state: TournamentState) => void) {
     this.repository = repository;
+    this.onStateChange = onStateChange;
   }
 
   /**
@@ -278,6 +282,71 @@ export class TournamentManager {
     
     // Store state via repository
     await this.repository.setState(state);
+    
+    // Start the timer for the first match
+    this.startTimer();
+    
+    // Notify listeners of initial state
+    if (this.onStateChange) {
+      this.onStateChange(state);
+    }
+  }
+
+  /**
+   * Start the timer for the current match
+   * Decrements timeRemaining every second and triggers match completion when time reaches 0
+   * Cleans up timer on match end
+   */
+  private startTimer(): void {
+    // Clean up any existing timer
+    this.stopTimer();
+    
+    // Create interval that decrements timeRemaining every second
+    this.timerInterval = setInterval(async () => {
+      try {
+        const state = await this.repository.getState();
+        
+        if (!state || !state.currentMatch || state.currentMatch.status !== 'IN_PROGRESS') {
+          this.stopTimer();
+          return;
+        }
+        
+        // Decrement time remaining
+        state.currentMatch.timeRemaining -= 1;
+        
+        // Update the match in the bracket as well
+        const currentRound = state.bracket[state.currentMatch.roundIndex];
+        const matchInBracket = currentRound.matches[state.currentMatch.matchIndex];
+        matchInBracket.timeRemaining = state.currentMatch.timeRemaining;
+        
+        // Save updated state
+        await this.repository.setState(state);
+        
+        // Notify listeners of state change
+        if (this.onStateChange) {
+          this.onStateChange(state);
+        }
+        
+        // Check if time has expired
+        if (state.currentMatch.timeRemaining <= 0) {
+          this.stopTimer();
+          await this.completeCurrentMatch();
+        }
+      } catch (error) {
+        console.error('Error in timer:', error);
+        this.stopTimer();
+      }
+    }, 1000); // Run every second
+  }
+
+  /**
+   * Stop the timer and clean up
+   */
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   /**
@@ -355,16 +424,91 @@ export class TournamentManager {
       nextMatch.startedAt = new Date();
       state.currentMatch = nextMatch;
       state.status = 'DUEL_IN_PROGRESS';
+      
+      // Save updated state
+      await this.repository.setState(state);
+      
+      // Notify listeners of state change
+      if (this.onStateChange) {
+        this.onStateChange(state);
+      }
+      
+      // Start the timer for the next match
+      this.startTimer();
     } else {
       // No more matches - tournament is finished
       state.currentMatch = null;
       state.winner = winner;
       state.status = 'TOURNAMENT_FINISHED';
+      
+      // Save updated state
+      await this.repository.setState(state);
+      
+      // Notify listeners of state change
+      if (this.onStateChange) {
+        this.onStateChange(state);
+      }
     }
     
-    // Save updated state
+    return state;
+  }
+
+  /**
+   * Process a vote for the current match
+   * Validates match is IN_PROGRESS and timeRemaining > 0
+   * Increments vote count for chosen side
+   * Updates match via repository
+   * 
+   * @param matchId - ID of the match being voted on
+   * @param choice - Which side to vote for ('LEFT' or 'RIGHT')
+   * @throws Error if match is not in progress or time has expired
+   */
+  async processVote(matchId: string, choice: 'LEFT' | 'RIGHT'): Promise<void> {
+    const state = await this.repository.getState();
+    
+    if (!state) {
+      throw new Error('No tournament state found');
+    }
+    
+    if (!state.currentMatch) {
+      throw new Error('No active match');
+    }
+    
+    // Validate match ID
+    if (state.currentMatch.id !== matchId) {
+      throw new Error('Invalid match ID');
+    }
+    
+    // Validate match is IN_PROGRESS
+    if (state.currentMatch.status !== 'IN_PROGRESS') {
+      throw new Error('Match is not in progress');
+    }
+    
+    // Validate timeRemaining > 0
+    if (state.currentMatch.timeRemaining <= 0) {
+      throw new Error('Voting time has expired');
+    }
+    
+    // Increment vote count for chosen side
+    if (choice === 'LEFT') {
+      state.currentMatch.votes.left += 1;
+    } else if (choice === 'RIGHT') {
+      state.currentMatch.votes.right += 1;
+    } else {
+      throw new Error('Invalid vote choice');
+    }
+    
+    // Update the match in the bracket as well
+    const currentRound = state.bracket[state.currentMatch.roundIndex];
+    const matchInBracket = currentRound.matches[state.currentMatch.matchIndex];
+    matchInBracket.votes = { ...state.currentMatch.votes };
+    
+    // Update match via repository
     await this.repository.setState(state);
     
-    return state;
+    // Notify listeners of state change
+    if (this.onStateChange) {
+      this.onStateChange(state);
+    }
   }
 }
