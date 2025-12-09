@@ -145,6 +145,68 @@ export class TournamentManager {
   }
 
   /**
+   * Calculate the winner of a match based on vote counts
+   * Returns meme with higher votes, or randomly selects winner in case of tie
+   * 
+   * @param match - The match to calculate winner for
+   * @returns The winning meme
+   */
+  private calculateWinner(match: Match): Meme {
+    const leftVotes = match.votes.left;
+    const rightVotes = match.votes.right;
+    
+    // If left has more votes, left wins
+    if (leftVotes > rightVotes) {
+      return match.leftMeme;
+    }
+    
+    // If right has more votes, right wins
+    if (rightVotes > leftVotes) {
+      return match.rightMeme;
+    }
+    
+    // Tie: randomly select winner
+    // Use Math.random() < 0.5 for 50/50 chance
+    return Math.random() < 0.5 ? match.leftMeme : match.rightMeme;
+  }
+
+  /**
+   * Advance the winner of a match to the next round
+   * Places winner in the appropriate match in the next round
+   * Updates bracket structure
+   * 
+   * @param state - Current tournament state
+   * @param completedMatch - The match that was just completed
+   * @param winner - The winning meme from the completed match
+   */
+  private advanceWinner(state: TournamentState, completedMatch: Match, winner: Meme): void {
+    const currentRoundIndex = completedMatch.roundIndex;
+    const nextRoundIndex = currentRoundIndex + 1;
+    
+    // Check if there is a next round
+    if (nextRoundIndex >= state.bracket.length) {
+      // This was the final match, no advancement needed
+      return;
+    }
+    
+    const nextRound = state.bracket[nextRoundIndex];
+    
+    // Determine which match in the next round this winner advances to
+    // In a single-elimination bracket, match i in round n feeds into match floor(i/2) in round n+1
+    const nextMatchIndex = Math.floor(completedMatch.matchIndex / 2);
+    const nextMatch = nextRound.matches[nextMatchIndex];
+    
+    // Determine if winner goes to left or right side of next match
+    // Even-indexed matches (0, 2, 4...) feed left side
+    // Odd-indexed matches (1, 3, 5...) feed right side
+    if (completedMatch.matchIndex % 2 === 0) {
+      nextMatch.leftMeme = winner;
+    } else {
+      nextMatch.rightMeme = winner;
+    }
+  }
+
+  /**
    * Initialize tournament with memes and voting time
    * Generates bracket, sets initial state to DUEL_IN_PROGRESS, and starts first match
    * 
@@ -216,5 +278,93 @@ export class TournamentManager {
     
     // Store state via repository
     await this.repository.setState(state);
+  }
+
+  /**
+   * Complete the current match and progress the tournament
+   * Calculates winner, advances them to next round, and starts next match
+   * Sets status to TOURNAMENT_FINISHED if this was the final match
+   * 
+   * @returns Updated tournament state
+   */
+  async completeCurrentMatch(): Promise<TournamentState> {
+    const state = await this.repository.getState();
+    
+    if (!state) {
+      throw new Error('No tournament state found');
+    }
+    
+    if (!state.currentMatch) {
+      throw new Error('No current match to complete');
+    }
+    
+    const currentMatch = state.currentMatch;
+    
+    // Calculate the winner
+    const winner = this.calculateWinner(currentMatch);
+    
+    // Update the match
+    currentMatch.winner = winner;
+    currentMatch.status = 'COMPLETED';
+    currentMatch.completedAt = new Date();
+    
+    // Update the match in the bracket
+    const currentRound = state.bracket[currentMatch.roundIndex];
+    const matchInBracket = currentRound.matches[currentMatch.matchIndex];
+    matchInBracket.winner = winner;
+    matchInBracket.status = 'COMPLETED';
+    matchInBracket.completedAt = currentMatch.completedAt;
+    
+    // Advance winner to next round
+    this.advanceWinner(state, currentMatch, winner);
+    
+    // Determine if there are more matches in the current round
+    const allMatchesInRoundComplete = currentRound.matches.every(m => m.status === 'COMPLETED');
+    
+    if (allMatchesInRoundComplete) {
+      currentRound.completed = true;
+    }
+    
+    // Find the next match to start
+    let nextMatch: Match | null = null;
+    
+    // First, check if there are more matches in the current round
+    if (!allMatchesInRoundComplete) {
+      // Find the next pending match in the current round
+      nextMatch = currentRound.matches.find(m => m.status === 'PENDING') || null;
+    }
+    
+    // If current round is complete, move to next round
+    if (!nextMatch && allMatchesInRoundComplete) {
+      const nextRoundIndex = currentMatch.roundIndex + 1;
+      
+      if (nextRoundIndex < state.bracket.length) {
+        const nextRound = state.bracket[nextRoundIndex];
+        
+        // Find the first match in the next round that has both memes assigned
+        nextMatch = nextRound.matches.find(m => 
+          m.leftMeme && m.rightMeme && m.status === 'PENDING'
+        ) || null;
+      }
+    }
+    
+    // Update tournament state
+    if (nextMatch) {
+      // Start the next match
+      nextMatch.status = 'IN_PROGRESS';
+      nextMatch.startedAt = new Date();
+      state.currentMatch = nextMatch;
+      state.status = 'DUEL_IN_PROGRESS';
+    } else {
+      // No more matches - tournament is finished
+      state.currentMatch = null;
+      state.winner = winner;
+      state.status = 'TOURNAMENT_FINISHED';
+    }
+    
+    // Save updated state
+    await this.repository.setState(state);
+    
+    return state;
   }
 }
