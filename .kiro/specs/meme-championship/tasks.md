@@ -355,7 +355,7 @@
   - Add responsive layout
   - _Requirements: 4.1, 5.1, 6.1_
 
-- [-] 15. Add animations and polish
+- [x] 15. Add animations and polish
   - Implement meme entrance animations in DuelView (center → sides)
   - Add smooth transitions between tournament states
   - Add loading states for uploads
@@ -363,7 +363,7 @@
   - Optimize images with next/image
   - _Requirements: 8.2, 8.5_
 
-- [ ] 16. Checkpoint - Ensure all tests pass
+- [x] 16. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 17. Perform exploratory testing with Playwright MCP
