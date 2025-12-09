@@ -55,7 +55,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
     }
   };
 
-  const processFiles = async (files: File[]) => {
+  const processFiles = useCallback(async (files: File[]) => {
     // Add files to upload list with 'uploading' status
     const newUploads: UploadStatus[] = files.map(file => ({
       file,
@@ -88,7 +88,7 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
     if (onUploadComplete) {
       onUploadComplete();
     }
-  };
+  }, [onUploadComplete]);
 
   const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -96,14 +96,14 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
     const files = Array.from(e.dataTransfer.files);
     processFiles(files);
-  }, [onUploadComplete]);
+  }, [processFiles]);
 
   const handleFileInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       processFiles(files);
     }
-  }, [onUploadComplete]);
+  }, [processFiles]);
 
   const removeUpload = (index: number) => {
     setUploads(prev => prev.filter((_, i) => i !== index));
