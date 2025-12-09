@@ -11,3 +11,6 @@ export { MemeList } from './MemeList';
 export { TournamentConfig } from './TournamentConfig';
 export { AdminDuelView } from './AdminDuelView';
 export { BracketVisualization } from './BracketVisualization';
+
+// Utility components
+export { ErrorBoundary } from './ErrorBoundary';

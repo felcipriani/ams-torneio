@@ -13,13 +13,36 @@ interface MemeCardProps {
 }
 
 export function MemeCard({ meme, voteCount, onVote, disabled = false, side }: MemeCardProps) {
+  // Enhanced entrance animation: start from center, move to sides
+  const getInitialPosition = () => {
+    if (!side) return { x: 0, opacity: 1, scale: 1 };
+    return { 
+      x: 0, // Start at center
+      opacity: 0, 
+      scale: 0.8 
+    };
+  };
+
+  const getAnimatePosition = () => {
+    if (!side) return { x: 0, opacity: 1, scale: 1 };
+    return { 
+      x: 0, // End at natural position (grid handles positioning)
+      opacity: 1, 
+      scale: 1 
+    };
+  };
+
   return (
     <motion.div
-      initial={side ? { x: side === 'left' ? -100 : 100, opacity: 0 } : { opacity: 1 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
+      initial={getInitialPosition()}
+      animate={getAnimatePosition()}
+      transition={{ 
+        duration: 0.8, 
+        delay: side === 'left' ? 0.5 : 0.6,
+        ease: [0.43, 0.13, 0.23, 0.96] // Custom easing for smooth motion
+      }}
       className="flex flex-col items-center space-y-4 p-6 bg-gray-800 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
-      whileHover={!disabled ? { scale: 1.02 } : {}}
+      whileHover={!disabled ? { scale: 1.02, y: -5 } : {}}
     >
       {/* Vote count badge */}
       <div className="relative w-full">

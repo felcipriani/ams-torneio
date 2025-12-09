@@ -346,7 +346,7 @@
     - Generate states with completed matches, verify visualization
     - _Requirements: 6.2_
 
-- [ ] 14. Build admin view page
+- [x] 14. Build admin view page
   - Create app/admin-view/page.tsx
   - Use useWebSocket hook to get tournament state
   - Render UploadZone and MemeList when status is WAITING
@@ -355,7 +355,7 @@
   - Add responsive layout
   - _Requirements: 4.1, 5.1, 6.1_
 
-- [ ] 15. Add animations and polish
+- [-] 15. Add animations and polish
   - Implement meme entrance animations in DuelView (center → sides)
   - Add smooth transitions between tournament states
   - Add loading states for uploads
