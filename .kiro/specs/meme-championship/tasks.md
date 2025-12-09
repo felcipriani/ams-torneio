@@ -31,13 +31,13 @@
     - Generate random tournament states, save and load, verify equality
     - _Requirements: 10.4_
 
-- [ ] 4. Implement Tournament Manager with bracket generation
-  - [ ] 4.1 Create TournamentManager class with repository injection
+- [x] 4. Implement Tournament Manager with bracket generation
+  - [x] 4.1 Create TournamentManager class with repository injection
     - Constructor accepts ITournamentRepository
     - Initialize with empty state
     - _Requirements: 10.3, 10.5_
   
-  - [ ] 4.2 Implement bracket generation algorithm
+  - [x] 4.2 Implement bracket generation algorithm
     - Generate single-elimination bracket for n memes (n≥2)
     - Calculate number of rounds: ceil(log2(n))
     - Create Match objects with proper pairings
@@ -50,7 +50,7 @@
     - Generate random meme sets (2-32 memes), verify bracket structure
     - _Requirements: 4.4_
   
-  - [ ] 4.4 Implement initializeTournament method
+  - [x] 4.4 Implement initializeTournament method
     - Accept memes array and voting time
     - Generate bracket using algorithm from 4.2
     - Set initial state to DUEL_IN_PROGRESS
@@ -58,8 +58,8 @@
     - Store state via repository
     - _Requirements: 4.4, 4.5_
 
-- [ ] 5. Implement match progression and winner calculation
-  - [ ] 5.1 Implement calculateWinner method
+- [x] 5. Implement match progression and winner calculation
+  - [x] 5.1 Implement calculateWinner method
     - Compare vote counts
     - Return meme with higher votes
     - Handle ties with random selection
@@ -77,12 +77,12 @@
     - Generate matches with equal votes, verify winner is one of the two memes
     - _Requirements: 5.4_
   
-  - [ ] 5.4 Implement advanceWinner method
+  - [x] 5.4 Implement advanceWinner method
     - Place winner in next round's match
     - Update bracket structure
     - _Requirements: 6.4_
   
-  - [ ] 5.5 Implement tournament progression logic
+  - [x] 5.5 Implement tournament progression logic
     - Determine if more matches in current round
     - Advance to next round if current round complete
     - Set status to TOURNAMENT_FINISHED if final match
@@ -94,8 +94,8 @@
     - Simulate match completions, verify correct progression
     - _Requirements: 5.5_
 
-- [ ] 6. Implement timer and vote processing
-  - [ ] 6.1 Implement timer mechanism
+- [x] 6. Implement timer and vote processing
+  - [x] 6.1 Implement timer mechanism
     - Create interval that decrements timeRemaining every second
     - Trigger match completion when time reaches 0
     - Clean up timer on match end
@@ -107,7 +107,7 @@
     - Verify timer decrements at correct intervals
     - _Requirements: 7.4_
   
-  - [ ] 6.3 Implement processVote method
+  - [x] 6.3 Implement processVote method
     - Validate match is IN_PROGRESS
     - Validate timeRemaining > 0
     - Increment vote count for chosen side
@@ -120,14 +120,14 @@
     - Generate votes with expired time, verify rejection
     - _Requirements: 2.5_
 
-- [ ] 7. Implement WebSocket server
-  - [ ] 7.1 Create WebSocket server with Socket.IO
+- [-] 7. Implement WebSocket server
+  - [x] 7.1 Create WebSocket server with Socket.IO
     - Set up server in /server/websocket.ts
     - Handle connection and disconnection events
     - Track connected clients
     - _Requirements: 7.2_
   
-  - [ ] 7.2 Implement state broadcasting
+  - [x] 7.2 Implement state broadcasting
     - Create broadcastState method
     - Emit state:update to all connected clients
     - Call on every state change
@@ -139,13 +139,13 @@
     - Simulate state changes, verify all clients receive updates
     - _Requirements: 7.2_
   
-  - [ ] 7.4 Implement vote:cast event handler
+  - [x] 7.4 Implement vote:cast event handler
     - Parse vote message
     - Call TournamentManager.processVote
     - Broadcast updated state
     - _Requirements: 2.1_
   
-  - [ ] 7.5 Implement admin:start event handler
+  - [x] 7.5 Implement admin:start event handler
     - Parse start message
     - Call TournamentManager.initializeTournament
     - Broadcast initial state
@@ -157,13 +157,13 @@
     - Verify all clients receive state with DUEL_IN_PROGRESS
     - _Requirements: 4.5_
 
-- [ ] 8. Implement file upload API route
-  - [ ] 8.1 Create POST /api/upload route
+- [x] 8. Implement file upload API route
+  - [x] 8.1 Create POST /api/upload route
     - Parse multipart form data with formidable
     - Extract file from request
     - _Requirements: 3.1_
   
-  - [ ] 8.2 Implement file validation
+  - [x] 8.2 Implement file validation
     - Check file size ≤ 5MB
     - Check MIME type is PNG, JPG, JPEG, or WEBP
     - Return specific error messages for failures
@@ -181,13 +181,13 @@
     - Generate files with various MIME types, verify validation
     - _Requirements: 3.3_
   
-  - [ ] 8.5 Implement file storage
+  - [x] 8.5 Implement file storage
     - Save valid files to /public/uploads
     - Generate unique filename with UUID
     - Use sharp for image processing
     - _Requirements: 3.5_
   
-  - [ ] 8.6 Create meme record via repository
+  - [x] 8.6 Create meme record via repository
     - Generate Meme object with id, imageUrl, caption
     - Store via repository.addMeme
     - Return meme metadata in response
