@@ -1,6 +1,6 @@
 # Implementation Plan - Campeonato de Memes
 
-- [-] 1. Initialize Next.js project with TypeScript and dependencies
+- [x] 1. Initialize Next.js project with TypeScript and dependencies
   - Create Next.js 14+ project with App Router
   - Install dependencies: socket.io, socket.io-client, formidable, sharp, framer-motion, fast-check, vitest
   - Install and configure ShadCN UI with Tailwind CSS
@@ -8,19 +8,19 @@
   - Create basic folder structure: /app, /components, /server, /lib, /types
   - _Requirements: 8.1_
 
-- [ ] 2. Define core TypeScript types and interfaces
+- [x] 2. Define core TypeScript types and interfaces
   - Create types for Meme, Match, Round, TournamentState
   - Create WebSocket message types (StateUpdateMessage, VoteCastMessage, etc.)
   - Create ITournamentRepository interface with all required methods
   - Export all types from /types/index.ts
   - _Requirements: 7.1, 10.1_
 
-- [ ] 3. Implement repository layer with in-memory implementation
-  - [ ] 3.1 Create ITournamentRepository interface
+- [x] 3. Implement repository layer with in-memory implementation
+  - [x] 3.1 Create ITournamentRepository interface
     - Define all methods: getState, setState, clearState, addMeme, getMemes, getMemeById, deleteMeme, updateMatch, getMatchById
     - _Requirements: 10.1, 10.3_
   
-  - [ ] 3.2 Implement InMemoryTournamentRepository
+  - [x] 3.2 Implement InMemoryTournamentRepository
     - Use Map/object storage for state, memes, and matches
     - Implement all ITournamentRepository methods
     - _Requirements: 7.1, 10.2_
