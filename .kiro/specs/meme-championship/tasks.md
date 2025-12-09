@@ -25,7 +25,7 @@
     - Implement all ITournamentRepository methods
     - _Requirements: 7.1, 10.2_
   
-  - [ ]* 3.3 Write property test for repository round-trip
+  - [x] 3.3 Write property test for repository round-trip
     - **Property 28: Repository Method Substitutability**
     - **Validates: Requirements 10.4**
     - Generate random tournament states, save and load, verify equality
