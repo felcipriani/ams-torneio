@@ -193,19 +193,19 @@
     - Return meme metadata in response
     - _Requirements: 3.5_
 
-- [ ] 9. Create additional API routes
-  - [ ] 9.1 Create GET /api/memes route
+- [x] 9. Create additional API routes
+  - [x] 9.1 Create GET /api/memes route
     - Retrieve memes from repository
     - Return JSON array
     - _Requirements: 3.5_
   
-  - [ ] 9.2 Create DELETE /api/memes/[id] route
+  - [x] 9.2 Create DELETE /api/memes/[id] route
     - Delete meme from repository
     - Delete associated file from /public/uploads
     - Return success response
     - _Requirements: 3.5_
 
-- [ ] 10. Implement WebSocket client hook
+- [x] 10. Implement WebSocket client hook
   - Create useWebSocket custom hook
   - Handle connection, disconnection, reconnection with exponential backoff
   - Subscribe to state:update events
@@ -219,14 +219,14 @@
   - Generate random states, verify UI reflects them
   - _Requirements: 1.3_
 
-- [ ] 11. Build public view UI components
-  - [ ] 11.1 Create WaitingScreen component
+- [x] 11. Build public view UI components
+  - [x] 11.1 Create WaitingScreen component
     - Display "Sessão ainda não iniciada" message
     - Center content with full-screen layout
     - Add subtle animations
     - _Requirements: 1.1_
   
-  - [ ] 11.2 Create Timer component
+  - [x] 11.2 Create Timer component
     - Display circular progress indicator
     - Show remaining time in seconds
     - Change color based on urgency (green → yellow → red)
@@ -238,7 +238,7 @@
     - Generate states with various timeRemaining, verify display
     - _Requirements: 1.5_
   
-  - [ ] 11.4 Create MemeCard component
+  - [x] 11.4 Create MemeCard component
     - Display image with aspect ratio preservation
     - Show caption below image
     - Add vote button
@@ -246,7 +246,7 @@
     - Add hover effects
     - _Requirements: 1.2_
   
-  - [ ] 11.5 Create DuelView component
+  - [x] 11.5 Create DuelView component
     - Display two MemeCard components side-by-side
     - Add Timer component
     - Handle vote button clicks
@@ -267,22 +267,22 @@
     - Generate states with various timeRemaining, verify button state
     - _Requirements: 2.2_
   
-  - [ ] 11.8 Create WinnerScreen component
+  - [x] 11.8 Create WinnerScreen component
     - Display champion meme large and centered
     - Show "Meme do Ano" title
     - Add confetti animation with framer-motion
     - Display caption
     - _Requirements: 1.4_
-
-- [ ] 12. Build public view page
+ 
+- [x] 12. Build public view page
   - Create app/page.tsx
   - Use useWebSocket hook to get tournament state
   - Conditionally render WaitingScreen, DuelView, or WinnerScreen based on state.status
   - Add responsive layout
   - _Requirements: 1.1, 1.2, 1.4_
 
-- [ ] 13. Build admin view UI components
-  - [ ] 13.1 Create UploadZone component
+- [x] 13. Build admin view UI components
+  - [x] 13.1 Create UploadZone component
     - Implement drag-and-drop area
     - Add file input fallback
     - Support multiple file selection
@@ -291,7 +291,7 @@
     - Call /api/upload for each file
     - _Requirements: 3.1, 3.4_
   
-  - [ ] 13.2 Create MemeList component
+  - [x] 13.2 Create MemeList component
     - Display grid of uploaded memes
     - Show preview thumbnails
     - Add editable caption fields
@@ -305,7 +305,7 @@
     - Generate uploaded memes, verify preview and caption field
     - _Requirements: 3.5_
   
-  - [ ] 13.4 Create TournamentConfig component
+  - [x] 13.4 Create TournamentConfig component
     - Add input for voting time (seconds)
     - Add "Iniciar torneio" button
     - Disable button when fewer than 2 memes
@@ -319,7 +319,7 @@
     - Generate states with various meme counts, verify button state
     - _Requirements: 4.2_
   
-  - [ ] 13.6 Create AdminDuelView component
+  - [x] 13.6 Create AdminDuelView component
     - Display current match with both memes
     - Show real-time vote counters
     - Display timer
@@ -332,7 +332,7 @@
     - Generate states with various vote counts, verify display
     - _Requirements: 5.2_
   
-  - [ ] 13.8 Create BracketVisualization component
+  - [x] 13.8 Create BracketVisualization component
     - Display tree structure of all matches
     - Show completed matches with winner highlighted
     - Show current match with pulsing border
