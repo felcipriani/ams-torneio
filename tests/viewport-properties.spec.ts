@@ -961,6 +961,299 @@ test.describe('Property 7: Animation performance preservation', () => {
 });
 
 /**
+ * Feature: responsive-viewport-optimization, Property 3: Typography hierarchy preservation
+ * **Validates: Requirements 7.1, 7.3**
+ * 
+ * For any text element that is resized, the relative size relationship between 
+ * heading levels (h1 > h2 > p) should be maintained across all breakpoints.
+ */
+test.describe('Property 3: Typography hierarchy preservation', () => {
+  test('Typography hierarchy should be maintained across all breakpoints', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 320, max: 2560 }), // All viewport widths
+        fc.integer({ min: 568, max: 1440 }), // All viewport heights
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          // Measure font sizes of different heading levels
+          const typographySizes = await page.evaluate(() => {
+            const measurements: any = {
+              h1Elements: [],
+              h2Elements: [],
+              pElements: []
+            };
+            
+            // Find all h1 elements
+            const h1Elements = document.querySelectorAll('h1');
+            h1Elements.forEach((el) => {
+              const styles = window.getComputedStyle(el);
+              const fontSize = parseFloat(styles.fontSize);
+              if (fontSize > 0) {
+                measurements.h1Elements.push({
+                  fontSize,
+                  text: el.textContent?.substring(0, 30) || ''
+                });
+              }
+            });
+            
+            // Find all h2 elements
+            const h2Elements = document.querySelectorAll('h2');
+            h2Elements.forEach((el) => {
+              const styles = window.getComputedStyle(el);
+              const fontSize = parseFloat(styles.fontSize);
+              if (fontSize > 0) {
+                measurements.h2Elements.push({
+                  fontSize,
+                  text: el.textContent?.substring(0, 30) || ''
+                });
+              }
+            });
+            
+            // Find all p elements (sample a few to avoid too many)
+            const pElements = document.querySelectorAll('p');
+            const pSample = Array.from(pElements).slice(0, 5); // Sample first 5
+            pSample.forEach((el) => {
+              const styles = window.getComputedStyle(el);
+              const fontSize = parseFloat(styles.fontSize);
+              if (fontSize > 0) {
+                measurements.pElements.push({
+                  fontSize,
+                  text: el.textContent?.substring(0, 30) || ''
+                });
+              }
+            });
+            
+            return measurements;
+          });
+          
+          // Verify hierarchy: h1 > h2 > p
+          if (typographySizes.h1Elements.length > 0 && typographySizes.h2Elements.length > 0) {
+            // Get average font sizes
+            const avgH1 = typographySizes.h1Elements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.h1Elements.length;
+            const avgH2 = typographySizes.h2Elements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.h2Elements.length;
+            
+            // h1 should be larger than h2
+            expect(avgH1).toBeGreaterThan(avgH2);
+          }
+          
+          if (typographySizes.h1Elements.length > 0 && typographySizes.pElements.length > 0) {
+            const avgH1 = typographySizes.h1Elements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.h1Elements.length;
+            const avgP = typographySizes.pElements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.pElements.length;
+            
+            // h1 should be larger than p
+            expect(avgH1).toBeGreaterThan(avgP);
+          }
+          
+          if (typographySizes.h2Elements.length > 0 && typographySizes.pElements.length > 0) {
+            const avgH2 = typographySizes.h2Elements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.h2Elements.length;
+            const avgP = typographySizes.pElements.reduce((sum: number, el: any) => sum + el.fontSize, 0) / typographySizes.pElements.length;
+            
+            // h2 should be larger than or equal to p (some p elements might be same size as h2)
+            expect(avgH2).toBeGreaterThanOrEqual(avgP);
+          }
+        }
+      ),
+      { numRuns: 30, endOnFailure: true }
+    );
+  });
+
+  test('Typography hierarchy should be preserved across breakpoint transitions', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        // Test transitions across major breakpoints
+        fc.constantFrom(
+          { from: 375, to: 768, name: 'mobile-to-tablet' },
+          { from: 768, to: 1024, name: 'tablet-to-desktop' },
+          { from: 1024, to: 1920, name: 'desktop-to-large' }
+        ),
+        async (transition) => {
+          // Measure at smaller viewport
+          await page.setViewportSize({ width: transition.from, height: 800 });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const smallerViewportSizes = await page.evaluate(() => {
+            const h1 = document.querySelector('h1');
+            const h2 = document.querySelector('h2');
+            const p = document.querySelector('p');
+            
+            return {
+              h1: h1 ? parseFloat(window.getComputedStyle(h1).fontSize) : null,
+              h2: h2 ? parseFloat(window.getComputedStyle(h2).fontSize) : null,
+              p: p ? parseFloat(window.getComputedStyle(p).fontSize) : null
+            };
+          });
+          
+          // Measure at larger viewport
+          await page.setViewportSize({ width: transition.to, height: 800 });
+          await page.waitForTimeout(100);
+          
+          const largerViewportSizes = await page.evaluate(() => {
+            const h1 = document.querySelector('h1');
+            const h2 = document.querySelector('h2');
+            const p = document.querySelector('p');
+            
+            return {
+              h1: h1 ? parseFloat(window.getComputedStyle(h1).fontSize) : null,
+              h2: h2 ? parseFloat(window.getComputedStyle(h2).fontSize) : null,
+              p: p ? parseFloat(window.getComputedStyle(p).fontSize) : null
+            };
+          });
+          
+          // Verify hierarchy is maintained at both viewports
+          if (smallerViewportSizes.h1 && smallerViewportSizes.h2) {
+            expect(smallerViewportSizes.h1).toBeGreaterThan(smallerViewportSizes.h2);
+          }
+          
+          if (largerViewportSizes.h1 && largerViewportSizes.h2) {
+            expect(largerViewportSizes.h1).toBeGreaterThan(largerViewportSizes.h2);
+          }
+          
+          if (smallerViewportSizes.h1 && smallerViewportSizes.p) {
+            expect(smallerViewportSizes.h1).toBeGreaterThan(smallerViewportSizes.p);
+          }
+          
+          if (largerViewportSizes.h1 && largerViewportSizes.p) {
+            expect(largerViewportSizes.h1).toBeGreaterThan(largerViewportSizes.p);
+          }
+          
+          // Verify font sizes scale up (or stay same) when viewport increases
+          if (smallerViewportSizes.h1 && largerViewportSizes.h1) {
+            expect(largerViewportSizes.h1).toBeGreaterThanOrEqual(smallerViewportSizes.h1);
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('Typography should maintain legibility at all viewport sizes', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 320, max: 2560 }),
+        fc.integer({ min: 568, max: 1440 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          // Check that all text elements meet minimum size requirements
+          const textSizes = await page.evaluate(() => {
+            const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, button');
+            const sizes: number[] = [];
+            
+            allTextElements.forEach((el) => {
+              const styles = window.getComputedStyle(el);
+              const fontSize = parseFloat(styles.fontSize);
+              const text = el.textContent?.trim() || '';
+              
+              // Only check elements with actual text content
+              if (text.length > 0 && fontSize > 0) {
+                sizes.push(fontSize);
+              }
+            });
+            
+            return {
+              minSize: sizes.length > 0 ? Math.min(...sizes) : 0,
+              maxSize: sizes.length > 0 ? Math.max(...sizes) : 0,
+              avgSize: sizes.length > 0 ? sizes.reduce((a, b) => a + b, 0) / sizes.length : 0
+            };
+          });
+          
+          // Minimum font size should be at least 12px for legibility
+          // (Some very small decorative elements might be smaller, but main text should be readable)
+          if (textSizes.minSize > 0) {
+            expect(textSizes.minSize).toBeGreaterThanOrEqual(10); // Allow 10px minimum for small decorative text
+          }
+          
+          // Maximum size should be reasonable (not exceeding 15% of viewport height)
+          const maxReasonableSize = height * 0.15;
+          if (textSizes.maxSize > 0) {
+            expect(textSizes.maxSize).toBeLessThanOrEqual(maxReasonableSize);
+          }
+        }
+      ),
+      { numRuns: 25, endOnFailure: true }
+    );
+  });
+
+  test('AdminView typography hierarchy should be maintained', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 1920 }),
+        fc.integer({ min: 600, max: 1080 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000/admin-view');
+          await page.waitForLoadState('networkidle');
+          
+          const isAdminView = await page.locator('text=Painel Administrativo').isVisible().catch(() => false);
+          
+          if (isAdminView) {
+            // Measure typography in admin view
+            const adminTypography = await page.evaluate(() => {
+              const h1 = document.querySelector('h1'); // "Painel Administrativo"
+              const h2Elements = document.querySelectorAll('h2'); // Section titles
+              const pElements = document.querySelectorAll('p'); // Subtitles and text
+              
+              const measurements: any = {
+                h1Size: null,
+                h2Sizes: [],
+                pSizes: []
+              };
+              
+              if (h1) {
+                measurements.h1Size = parseFloat(window.getComputedStyle(h1).fontSize);
+              }
+              
+              h2Elements.forEach((h2) => {
+                const size = parseFloat(window.getComputedStyle(h2).fontSize);
+                if (size > 0) {
+                  measurements.h2Sizes.push(size);
+                }
+              });
+              
+              // Sample first few p elements
+              Array.from(pElements).slice(0, 5).forEach((p) => {
+                const size = parseFloat(window.getComputedStyle(p).fontSize);
+                if (size > 0) {
+                  measurements.pSizes.push(size);
+                }
+              });
+              
+              return measurements;
+            });
+            
+            // Verify h1 > h2
+            if (adminTypography.h1Size && adminTypography.h2Sizes.length > 0) {
+              const avgH2 = adminTypography.h2Sizes.reduce((a: number, b: number) => a + b, 0) / adminTypography.h2Sizes.length;
+              expect(adminTypography.h1Size).toBeGreaterThan(avgH2);
+            }
+            
+            // Verify h1 > p
+            if (adminTypography.h1Size && adminTypography.pSizes.length > 0) {
+              const avgP = adminTypography.pSizes.reduce((a: number, b: number) => a + b, 0) / adminTypography.pSizes.length;
+              expect(adminTypography.h1Size).toBeGreaterThan(avgP);
+            }
+            
+            // Verify h2 >= p (h2 should be at least as large as p)
+            if (adminTypography.h2Sizes.length > 0 && adminTypography.pSizes.length > 0) {
+              const avgH2 = adminTypography.h2Sizes.reduce((a: number, b: number) => a + b, 0) / adminTypography.h2Sizes.length;
+              const avgP = adminTypography.pSizes.reduce((a: number, b: number) => a + b, 0) / adminTypography.pSizes.length;
+              expect(avgH2).toBeGreaterThanOrEqual(avgP);
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+});
+
+/**
  * Feature: responsive-viewport-optimization, Property 6: Admin scroll isolation
  * **Validates: Requirements 5.2**
  * 

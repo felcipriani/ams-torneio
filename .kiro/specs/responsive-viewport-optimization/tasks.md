@@ -67,7 +67,7 @@
   - Ensure confetti animation respects viewport boundaries
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 6.1 Write property test for typography hierarchy preservation
+- [x] 6.1 Write property test for typography hierarchy preservation
   - **Property 3: Typography hierarchy preservation**
   - **Validates: Requirements 7.1, 7.3**
 
@@ -106,7 +106,7 @@
   - **Property 2: Responsive scaling consistency**
   - **Validates: Requirements 6.1, 6.2**
 
-- [ ] 13. Write property test for admin scroll isolation
+- [x] 13. Write property test for admin scroll isolation
   - **Property 6: Admin scroll isolation**
   - **Validates: Requirements 5.2**
 
