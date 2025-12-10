@@ -238,8 +238,13 @@ export class TournamentManager {
       throw new Error('Tournament requires at least 2 memes');
     }
 
+    console.log(`[TournamentManager] Initializing tournament with ${memes.length} memes`);
+    console.log(`[TournamentManager] Memes:`, memes.map(m => `${m.caption} (${m.id})`).join(', '));
+
     // Generate the bracket
     const bracket = this.generateBracket(memes, votingTimeSeconds);
+    
+    console.log(`[TournamentManager] Generated bracket with ${bracket.length} rounds`);
     
     // Handle memes with byes - they advance to round 2 automatically
     const numRounds = Math.ceil(Math.log2(memes.length));
@@ -278,6 +283,15 @@ export class TournamentManager {
     
     // Get the first match to start
     const firstMatch = bracket[0].matches[0];
+    
+    console.log(`[TournamentManager] First match:`);
+    console.log(`  Left: ${firstMatch.leftMeme?.caption} (${firstMatch.leftMeme?.id})`);
+    console.log(`  Right: ${firstMatch.rightMeme?.caption} (${firstMatch.rightMeme?.id})`);
+    
+    if (firstMatch.leftMeme && firstMatch.rightMeme && firstMatch.leftMeme.id === firstMatch.rightMeme.id) {
+      console.error(`[TournamentManager] ❌ BUG: First match has duplicate memes!`);
+    }
+    
     firstMatch.status = 'IN_PROGRESS';
     firstMatch.startedAt = new Date();
     
