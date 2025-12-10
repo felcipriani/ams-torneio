@@ -30,7 +30,7 @@
   - Change button text from text-lg to text-sm md:text-base
   - _Requirements: 1.2, 2.4, 7.1, 7.2_
 
-- [ ] 4.1 Write property test for image aspect ratios
+- [x] 4.1 Write property test for image aspect ratios
   - **Property 4: Image aspect ratio adaptation**
   - **Validates: Requirements 1.2, 2.4**
 
@@ -67,7 +67,7 @@
   - Ensure confetti animation respects viewport boundaries
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ]* 6.1 Write property test for typography hierarchy preservation
+- [ ] 6.1 Write property test for typography hierarchy preservation
   - **Property 3: Typography hierarchy preservation**
   - **Validates: Requirements 7.1, 7.3**
 
@@ -91,18 +91,18 @@
   - Maintain minimum touch target sizes (44x44px)
   - _Requirements: 5.1, 7.2_
 
-- [ ] 10. Optimize TournamentConfig component (if needed)
+- [x] 10. Optimize TournamentConfig component (if needed)
   - Review spacing and reduce if excessive
   - Ensure form controls are compact but accessible
   - _Requirements: 5.1, 5.4_
 
-- [ ] 11. Optimize MemeList component (if needed)
+- [x] 11. Optimize MemeList component (if needed)
   - Ensure grid layout is compact
   - Reduce card sizes if needed
   - Verify internal scrolling works smoothly
   - _Requirements: 5.2_
 
-- [ ] 12. Write property test for responsive scaling consistency
+- [x] 12. Write property test for responsive scaling consistency
   - **Property 2: Responsive scaling consistency**
   - **Validates: Requirements 6.1, 6.2**
 
@@ -110,7 +110,7 @@
   - **Property 6: Admin scroll isolation**
   - **Validates: Requirements 5.2**
 
-- [ ] 14. Write property test for animation performance preservation
+- [x] 14. Write property test for animation performance preservation
   - **Property 7: Animation performance preservation**
   - **Validates: Requirements 4.4, 7.4**
 

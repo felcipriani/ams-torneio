@@ -340,6 +340,185 @@ test.describe('Property 2: Responsive scaling consistency', () => {
 });
 
 /**
+ * Feature: responsive-viewport-optimization, Property 4: Image aspect ratio adaptation
+ * **Validates: Requirements 1.2, 2.4**
+ * 
+ * For any MemeCard rendered, the image aspect ratio should be 4:3 on mobile (<768px) 
+ * and 16:9 or 16:10 on desktop (≥768px).
+ */
+test.describe('Property 4: Image aspect ratio adaptation', () => {
+  test('MemeCard images should use 4:3 aspect ratio on mobile', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 320, max: 767 }), // Mobile widths
+        fc.integer({ min: 568, max: 1024 }), // Mobile heights
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isDuelView = await page.locator('text=Duelo de Memes').isVisible().catch(() => false);
+          
+          if (isDuelView) {
+            // Find image containers in MemeCards
+            const imageContainers = page.locator('.aspect-\\[4\\/3\\]');
+            const containerCount = await imageContainers.count();
+            
+            if (containerCount > 0) {
+              // Check each image container
+              for (let i = 0; i < containerCount; i++) {
+                const container = imageContainers.nth(i);
+                const dimensions = await container.evaluate((el) => {
+                  const rect = el.getBoundingClientRect();
+                  return {
+                    width: rect.width,
+                    height: rect.height,
+                    aspectRatio: rect.width / rect.height
+                  };
+                });
+                
+                // 4:3 aspect ratio = 1.333...
+                // Allow 5% tolerance for rounding and browser differences
+                const expectedRatio = 4 / 3;
+                const tolerance = expectedRatio * 0.05;
+                
+                expect(dimensions.aspectRatio).toBeGreaterThan(expectedRatio - tolerance);
+                expect(dimensions.aspectRatio).toBeLessThan(expectedRatio + tolerance);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('MemeCard images should use 16:9 or 16:10 aspect ratio on tablet/desktop', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 2560 }), // Tablet and desktop widths
+        fc.integer({ min: 600, max: 1440 }), // Various heights
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isDuelView = await page.locator('text=Duelo de Memes').isVisible().catch(() => false);
+          
+          if (isDuelView) {
+            // On tablet/desktop, images should use aspect-[16/9] or aspect-[16/10]
+            // Check for md: breakpoint classes
+            const imageContainers = page.locator('[class*="aspect-"]');
+            const containerCount = await imageContainers.count();
+            
+            if (containerCount > 0) {
+              for (let i = 0; i < containerCount; i++) {
+                const container = imageContainers.nth(i);
+                const dimensions = await container.evaluate((el) => {
+                  const rect = el.getBoundingClientRect();
+                  const classes = el.className;
+                  return {
+                    width: rect.width,
+                    height: rect.height,
+                    aspectRatio: rect.width / rect.height,
+                    classes: classes
+                  };
+                });
+                
+                // At md breakpoint (768px+), should be 16:9 (1.777...) or 16:10 (1.6)
+                // At lg breakpoint (1024px+), should be 16:10 (1.6)
+                const ratio16_9 = 16 / 9; // 1.777...
+                const ratio16_10 = 16 / 10; // 1.6
+                const tolerance = 0.1; // 10% tolerance
+                
+                // Check if aspect ratio matches either 16:9 or 16:10
+                const matches16_9 = Math.abs(dimensions.aspectRatio - ratio16_9) < tolerance;
+                const matches16_10 = Math.abs(dimensions.aspectRatio - ratio16_10) < tolerance;
+                
+                // Should match at least one of the expected ratios
+                expect(matches16_9 || matches16_10).toBe(true);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('Aspect ratio should transition correctly across breakpoints', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        // Test transition from mobile to tablet/desktop
+        fc.constantFrom(
+          { from: 375, to: 768, name: 'mobile-to-tablet' },
+          { from: 767, to: 1024, name: 'tablet-to-desktop' }
+        ),
+        async (transition) => {
+          // Start at mobile viewport
+          await page.setViewportSize({ 
+            width: transition.from, 
+            height: 800 
+          });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isDuelView = await page.locator('text=Duelo de Memes').isVisible().catch(() => false);
+          
+          if (isDuelView) {
+            // Measure aspect ratio at smaller viewport
+            const mobileRatio = await page.evaluate(() => {
+              const container = document.querySelector('[class*="aspect-"]');
+              if (container) {
+                const rect = container.getBoundingClientRect();
+                return rect.width / rect.height;
+              }
+              return null;
+            });
+            
+            // Resize to larger viewport
+            await page.setViewportSize({ 
+              width: transition.to, 
+              height: 800 
+            });
+            await page.waitForTimeout(100);
+            
+            // Measure aspect ratio at larger viewport
+            const desktopRatio = await page.evaluate(() => {
+              const container = document.querySelector('[class*="aspect-"]');
+              if (container) {
+                const rect = container.getBoundingClientRect();
+                return rect.width / rect.height;
+              }
+              return null;
+            });
+            
+            if (mobileRatio && desktopRatio) {
+              // Aspect ratio should change when crossing breakpoint
+              // Mobile should be closer to 4:3 (1.333), desktop closer to 16:9 (1.777) or 16:10 (1.6)
+              if (transition.from < 768 && transition.to >= 768) {
+                // Crossing from mobile to tablet/desktop
+                // Desktop ratio should be wider (larger) than mobile ratio
+                expect(desktopRatio).toBeGreaterThan(mobileRatio);
+                
+                // Mobile should be close to 4:3
+                expect(Math.abs(mobileRatio - 4/3)).toBeLessThan(0.2);
+                
+                // Desktop should be close to 16:9 or 16:10
+                const close16_9 = Math.abs(desktopRatio - 16/9) < 0.2;
+                const close16_10 = Math.abs(desktopRatio - 16/10) < 0.2;
+                expect(close16_9 || close16_10).toBe(true);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+});
+
+/**
  * Feature: responsive-viewport-optimization, Property 5: Mobile vertical stacking efficiency
  * **Validates: Requirements 2.1, 2.2**
  * 
