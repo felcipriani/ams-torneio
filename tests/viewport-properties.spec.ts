@@ -438,3 +438,347 @@ test.describe('Property 5: Mobile vertical stacking efficiency', () => {
     );
   });
 });
+
+/**
+ * Feature: responsive-viewport-optimization, Property 7: Animation performance preservation
+ * **Validates: Requirements 4.4, 7.4**
+ * 
+ * For any animated element (confetti, timer, transitions), the animation should complete 
+ * without causing reflow or affecting the layout dimensions of other elements.
+ */
+test.describe('Property 7: Animation performance preservation', () => {
+  test('Timer animation should not cause layout shift or reflow', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1024, max: 1920 }), // Desktop widths
+        fc.integer({ min: 768, max: 1080 }),  // Desktop heights
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isDuelView = await page.locator('text=Duelo de Memes').isVisible().catch(() => false);
+          
+          if (isDuelView) {
+            // Find timer element
+            const timerContainer = page.locator('svg circle[stroke-dasharray]').first();
+            
+            if (await timerContainer.isVisible()) {
+              // Measure initial layout dimensions
+              const initialLayout = await page.evaluate(() => {
+                const body = document.body;
+                const html = document.documentElement;
+                
+                return {
+                  bodyHeight: body.scrollHeight,
+                  bodyWidth: body.scrollWidth,
+                  htmlHeight: html.scrollHeight,
+                  htmlWidth: html.scrollWidth,
+                  hasOverflow: html.scrollHeight > html.clientHeight
+                };
+              });
+              
+              // Wait for timer animation to progress
+              await page.waitForTimeout(1000);
+              
+              // Measure layout after animation
+              const afterAnimationLayout = await page.evaluate(() => {
+                const body = document.body;
+                const html = document.documentElement;
+                
+                return {
+                  bodyHeight: body.scrollHeight,
+                  bodyWidth: body.scrollWidth,
+                  htmlHeight: html.scrollHeight,
+                  htmlWidth: html.scrollWidth,
+                  hasOverflow: html.scrollHeight > html.clientHeight
+                };
+              });
+              
+              // Verify no layout shift occurred
+              expect(afterAnimationLayout.bodyHeight).toBe(initialLayout.bodyHeight);
+              expect(afterAnimationLayout.bodyWidth).toBe(initialLayout.bodyWidth);
+              expect(afterAnimationLayout.htmlHeight).toBe(initialLayout.htmlHeight);
+              expect(afterAnimationLayout.htmlWidth).toBe(initialLayout.htmlWidth);
+              
+              // Verify no overflow was introduced
+              expect(afterAnimationLayout.hasOverflow).toBe(initialLayout.hasOverflow);
+            }
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('WinnerScreen confetti animation should respect viewport boundaries', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1024, max: 1920 }),
+        fc.integer({ min: 768, max: 1080 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isWinnerScreen = await page.locator('text=Meme do Ano').isVisible().catch(() => false);
+          
+          if (isWinnerScreen) {
+            // Measure initial layout before confetti animation starts
+            const initialLayout = await page.evaluate(() => {
+              const html = document.documentElement;
+              return {
+                scrollHeight: html.scrollHeight,
+                scrollWidth: html.scrollWidth,
+                clientHeight: html.clientHeight,
+                clientWidth: html.clientWidth,
+                hasVerticalOverflow: html.scrollHeight > html.clientHeight,
+                hasHorizontalOverflow: html.scrollWidth > html.clientWidth
+              };
+            });
+            
+            // Wait for confetti animation to start and progress
+            await page.waitForTimeout(500);
+            
+            // Measure layout during animation
+            const duringAnimationLayout = await page.evaluate(() => {
+              const html = document.documentElement;
+              return {
+                scrollHeight: html.scrollHeight,
+                scrollWidth: html.scrollWidth,
+                clientHeight: html.clientHeight,
+                clientWidth: html.clientWidth,
+                hasVerticalOverflow: html.scrollHeight > html.clientHeight,
+                hasHorizontalOverflow: html.scrollWidth > html.clientWidth
+              };
+            });
+            
+            // Verify confetti doesn't cause overflow
+            // Allow 1px tolerance for rounding
+            expect(duringAnimationLayout.scrollHeight).toBeLessThanOrEqual(
+              initialLayout.scrollHeight + 1
+            );
+            expect(duringAnimationLayout.scrollWidth).toBeLessThanOrEqual(
+              initialLayout.scrollWidth + 1
+            );
+            
+            // Verify no new overflow was introduced
+            expect(duringAnimationLayout.hasVerticalOverflow).toBe(initialLayout.hasVerticalOverflow);
+            expect(duringAnimationLayout.hasHorizontalOverflow).toBe(initialLayout.hasHorizontalOverflow);
+            
+            // Verify confetti container has overflow-hidden
+            const confettiContainer = await page.evaluate(() => {
+              const container = document.querySelector('.absolute.inset-0.pointer-events-none');
+              if (container) {
+                const styles = window.getComputedStyle(container);
+                return {
+                  overflow: styles.overflow,
+                  overflowX: styles.overflowX,
+                  overflowY: styles.overflowY
+                };
+              }
+              return null;
+            });
+            
+            if (confettiContainer) {
+              // Container should have overflow hidden to prevent confetti from causing scroll
+              expect(confettiContainer.overflow === 'hidden' || 
+                     confettiContainer.overflowY === 'hidden').toBe(true);
+            }
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('WaitingScreen pulse animation should not affect layout dimensions', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 1920 }),
+        fc.integer({ min: 600, max: 1080 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isWaitingScreen = await page.locator('text=Sessão ainda não iniciada').isVisible().catch(() => false);
+          
+          if (isWaitingScreen) {
+            // Measure initial dimensions
+            const initialDimensions = await page.evaluate(() => {
+              const html = document.documentElement;
+              const waitingText = document.querySelector('h1');
+              
+              return {
+                htmlHeight: html.scrollHeight,
+                htmlWidth: html.scrollWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight,
+                textHeight: waitingText ? waitingText.getBoundingClientRect().height : 0,
+                textWidth: waitingText ? waitingText.getBoundingClientRect().width : 0
+              };
+            });
+            
+            // Wait through multiple animation cycles
+            await page.waitForTimeout(2500); // More than one full pulse cycle
+            
+            // Measure dimensions after animation
+            const afterAnimationDimensions = await page.evaluate(() => {
+              const html = document.documentElement;
+              const waitingText = document.querySelector('h1');
+              
+              return {
+                htmlHeight: html.scrollHeight,
+                htmlWidth: html.scrollWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight,
+                textHeight: waitingText ? waitingText.getBoundingClientRect().height : 0,
+                textWidth: waitingText ? waitingText.getBoundingClientRect().width : 0
+              };
+            });
+            
+            // Verify layout dimensions remain stable
+            expect(afterAnimationDimensions.htmlHeight).toBe(initialDimensions.htmlHeight);
+            expect(afterAnimationDimensions.htmlWidth).toBe(initialDimensions.htmlWidth);
+            expect(afterAnimationDimensions.hasOverflow).toBe(initialDimensions.hasOverflow);
+            
+            // Text dimensions should remain stable (opacity animation shouldn't affect size)
+            expect(afterAnimationDimensions.textHeight).toBe(initialDimensions.textHeight);
+            expect(afterAnimationDimensions.textWidth).toBe(initialDimensions.textWidth);
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('WinnerScreen card rotation animation should not cause layout shift', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1024, max: 1920 }),
+        fc.integer({ min: 768, max: 1080 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          const isWinnerScreen = await page.locator('text=Meme do Ano').isVisible().catch(() => false);
+          
+          if (isWinnerScreen) {
+            // Find the winner card container
+            const winnerCard = page.locator('.bg-white.rounded-2xl').first();
+            
+            if (await winnerCard.isVisible()) {
+              // Measure initial layout
+              const initialLayout = await page.evaluate(() => {
+                const html = document.documentElement;
+                const card = document.querySelector('.bg-white.rounded-2xl');
+                const cardRect = card ? card.getBoundingClientRect() : null;
+                
+                return {
+                  htmlHeight: html.scrollHeight,
+                  htmlWidth: html.scrollWidth,
+                  hasOverflow: html.scrollHeight > html.clientHeight,
+                  cardTop: cardRect?.top || 0,
+                  cardLeft: cardRect?.left || 0,
+                  cardHeight: cardRect?.height || 0,
+                  cardWidth: cardRect?.width || 0
+                };
+              });
+              
+              // Wait for rotation animation to progress
+              await page.waitForTimeout(1500);
+              
+              // Measure layout during animation
+              const duringAnimationLayout = await page.evaluate(() => {
+                const html = document.documentElement;
+                const card = document.querySelector('.bg-white.rounded-2xl');
+                const cardRect = card ? card.getBoundingClientRect() : null;
+                
+                return {
+                  htmlHeight: html.scrollHeight,
+                  htmlWidth: html.scrollWidth,
+                  hasOverflow: html.scrollHeight > html.clientHeight,
+                  cardTop: cardRect?.top || 0,
+                  cardLeft: cardRect?.left || 0,
+                  cardHeight: cardRect?.height || 0,
+                  cardWidth: cardRect?.width || 0
+                };
+              });
+              
+              // Verify no layout shift in document
+              expect(duringAnimationLayout.htmlHeight).toBe(initialLayout.htmlHeight);
+              expect(duringAnimationLayout.htmlWidth).toBe(initialLayout.htmlWidth);
+              expect(duringAnimationLayout.hasOverflow).toBe(initialLayout.hasOverflow);
+              
+              // Card dimensions should remain stable (rotation uses transform, not layout changes)
+              // Allow small tolerance for transform-based positioning
+              expect(Math.abs(duringAnimationLayout.cardHeight - initialLayout.cardHeight)).toBeLessThan(5);
+              expect(Math.abs(duringAnimationLayout.cardWidth - initialLayout.cardWidth)).toBeLessThan(5);
+            }
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('Multiple simultaneous animations should not compound layout issues', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 1024, max: 1920 }),
+        fc.integer({ min: 768, max: 1080 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          // This test checks any screen with animations
+          const hasAnimations = await page.evaluate(() => {
+            // Check for any animated elements
+            const animatedElements = document.querySelectorAll('[class*="motion"]');
+            return animatedElements.length > 0;
+          });
+          
+          if (hasAnimations) {
+            // Measure initial state
+            const initialState = await page.evaluate(() => {
+              const html = document.documentElement;
+              return {
+                scrollHeight: html.scrollHeight,
+                scrollWidth: html.scrollWidth,
+                clientHeight: html.clientHeight,
+                clientWidth: html.clientWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight
+              };
+            });
+            
+            // Wait for multiple animation cycles
+            await page.waitForTimeout(2000);
+            
+            // Measure after animations
+            const afterState = await page.evaluate(() => {
+              const html = document.documentElement;
+              return {
+                scrollHeight: html.scrollHeight,
+                scrollWidth: html.scrollWidth,
+                clientHeight: html.clientHeight,
+                clientWidth: html.clientWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight
+              };
+            });
+            
+            // Verify layout stability
+            expect(afterState.scrollHeight).toBe(initialState.scrollHeight);
+            expect(afterState.scrollWidth).toBe(initialState.scrollWidth);
+            expect(afterState.hasOverflow).toBe(initialState.hasOverflow);
+            
+            // Verify viewport dimensions unchanged
+            expect(afterState.clientHeight).toBe(initialState.clientHeight);
+            expect(afterState.clientWidth).toBe(initialState.clientWidth);
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+});
