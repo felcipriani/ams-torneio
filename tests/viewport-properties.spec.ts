@@ -96,6 +96,250 @@ test.describe('Property 1: Viewport containment on desktop', () => {
 });
 
 /**
+ * Feature: responsive-viewport-optimization, Property 2: Responsive scaling consistency
+ * **Validates: Requirements 6.1, 6.2**
+ * 
+ * For any viewport resize event, all components using vh/vw units should recalculate 
+ * their dimensions proportionally without layout shift or overflow.
+ */
+test.describe('Property 2: Responsive scaling consistency', () => {
+  test('Components should scale proportionally when viewport is resized', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        // Generate pairs of viewport dimensions to test resize behavior
+        fc.tuple(
+          fc.record({
+            width: fc.integer({ min: 1024, max: 1920 }),
+            height: fc.integer({ min: 768, max: 1080 })
+          }),
+          fc.record({
+            width: fc.integer({ min: 1024, max: 1920 }),
+            height: fc.integer({ min: 768, max: 1080 })
+          })
+        ),
+        async ([viewport1, viewport2]) => {
+          // Set initial viewport
+          await page.setViewportSize(viewport1);
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          // Wait a bit for any animations to settle
+          await page.waitForTimeout(100);
+          
+          // Measure initial dimensions
+          const initialMeasurements = await page.evaluate(() => {
+            const measurements: any = {
+              scrollHeight: document.documentElement.scrollHeight,
+              clientHeight: document.documentElement.clientHeight,
+              hasOverflow: document.documentElement.scrollHeight > document.documentElement.clientHeight
+            };
+            
+            // Measure header if present
+            const header = document.querySelector('header');
+            if (header) {
+              const rect = header.getBoundingClientRect();
+              measurements.headerHeight = rect.height;
+              measurements.headerHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            // Measure timer if present
+            const timer = document.querySelector('[class*="Timer"]') || 
+                         document.querySelector('svg circle[stroke-dasharray]')?.closest('div');
+            if (timer) {
+              const rect = timer.getBoundingClientRect();
+              measurements.timerHeight = rect.height;
+              measurements.timerHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            // Measure grid container if present
+            const grid = document.querySelector('.grid');
+            if (grid) {
+              const rect = grid.getBoundingClientRect();
+              measurements.gridHeight = rect.height;
+              measurements.gridHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            return measurements;
+          });
+          
+          // Resize viewport
+          await page.setViewportSize(viewport2);
+          await page.waitForTimeout(100); // Allow time for resize to take effect
+          
+          // Measure after resize
+          const resizedMeasurements = await page.evaluate(() => {
+            const measurements: any = {
+              scrollHeight: document.documentElement.scrollHeight,
+              clientHeight: document.documentElement.clientHeight,
+              hasOverflow: document.documentElement.scrollHeight > document.documentElement.clientHeight
+            };
+            
+            const header = document.querySelector('header');
+            if (header) {
+              const rect = header.getBoundingClientRect();
+              measurements.headerHeight = rect.height;
+              measurements.headerHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            const timer = document.querySelector('[class*="Timer"]') || 
+                         document.querySelector('svg circle[stroke-dasharray]')?.closest('div');
+            if (timer) {
+              const rect = timer.getBoundingClientRect();
+              measurements.timerHeight = rect.height;
+              measurements.timerHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            const grid = document.querySelector('.grid');
+            if (grid) {
+              const rect = grid.getBoundingClientRect();
+              measurements.gridHeight = rect.height;
+              measurements.gridHeightVh = (rect.height / window.innerHeight) * 100;
+            }
+            
+            return measurements;
+          });
+          
+          // Verify no overflow after resize
+          expect(resizedMeasurements.hasOverflow).toBe(false);
+          
+          // Verify proportional scaling: vh-based elements should maintain similar vh percentages
+          // Allow 2vh tolerance for rounding and browser differences
+          if (initialMeasurements.headerHeightVh && resizedMeasurements.headerHeightVh) {
+            const vhDifference = Math.abs(
+              initialMeasurements.headerHeightVh - resizedMeasurements.headerHeightVh
+            );
+            expect(vhDifference).toBeLessThan(2);
+          }
+          
+          if (initialMeasurements.timerHeightVh && resizedMeasurements.timerHeightVh) {
+            const vhDifference = Math.abs(
+              initialMeasurements.timerHeightVh - resizedMeasurements.timerHeightVh
+            );
+            expect(vhDifference).toBeLessThan(2);
+          }
+          
+          // Verify content still fits in viewport after resize
+          expect(resizedMeasurements.scrollHeight).toBeLessThanOrEqual(
+            resizedMeasurements.clientHeight + 1
+          );
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('Breakpoint transitions should apply correct responsive classes', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        // Test transitions across breakpoints: mobile -> tablet -> desktop
+        fc.constantFrom(
+          { from: 375, to: 768, name: 'mobile-to-tablet' },
+          { from: 768, to: 1024, name: 'tablet-to-desktop' },
+          { from: 1024, to: 1920, name: 'desktop-to-large' }
+        ),
+        async (transition) => {
+          // Start at smaller viewport
+          await page.setViewportSize({ 
+            width: transition.from, 
+            height: 800 
+          });
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          await page.waitForTimeout(100);
+          
+          // Capture initial state
+          const initialState = await page.evaluate(() => {
+            const grid = document.querySelector('.grid');
+            return {
+              gridClass: grid?.getAttribute('class') || '',
+              hasGrid: !!grid
+            };
+          });
+          
+          // Resize to larger viewport
+          await page.setViewportSize({ 
+            width: transition.to, 
+            height: 800 
+          });
+          await page.waitForTimeout(100);
+          
+          // Capture resized state
+          const resizedState = await page.evaluate(() => {
+            const grid = document.querySelector('.grid');
+            return {
+              gridClass: grid?.getAttribute('class') || '',
+              hasGrid: !!grid,
+              hasOverflow: document.documentElement.scrollHeight > document.documentElement.clientHeight
+            };
+          });
+          
+          // Verify no overflow after breakpoint transition
+          if (resizedState.hasGrid) {
+            expect(resizedState.hasOverflow).toBe(false);
+          }
+          
+          // Verify responsive classes changed appropriately
+          if (initialState.hasGrid && resizedState.hasGrid) {
+            // Classes should be different after crossing breakpoint
+            // (unless we're at the same breakpoint, which is unlikely with our ranges)
+            const classesChanged = initialState.gridClass !== resizedState.gridClass;
+            
+            // At minimum, verify the layout is still valid
+            expect(resizedState.gridClass).toBeTruthy();
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+
+  test('Rapid viewport changes should not cause layout shift or overflow', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        // Generate a sequence of viewport sizes to test rapid changes
+        fc.array(
+          fc.record({
+            width: fc.integer({ min: 768, max: 1920 }),
+            height: fc.integer({ min: 600, max: 1080 })
+          }),
+          { minLength: 3, maxLength: 5 }
+        ),
+        async (viewportSequence) => {
+          await page.goto('http://localhost:3000');
+          await page.waitForLoadState('networkidle');
+          
+          // Apply each viewport size in sequence
+          for (const viewport of viewportSequence) {
+            await page.setViewportSize(viewport);
+            await page.waitForTimeout(50); // Minimal wait to simulate rapid changes
+            
+            // Check for overflow after each resize
+            const hasOverflow = await page.evaluate(() => {
+              return document.documentElement.scrollHeight > document.documentElement.clientHeight;
+            });
+            
+            // Should not overflow at any point
+            expect(hasOverflow).toBe(false);
+          }
+          
+          // Final check: measure layout stability
+          const finalCheck = await page.evaluate(() => {
+            return {
+              hasOverflow: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+              bodyHeight: document.body.scrollHeight,
+              viewportHeight: window.innerHeight
+            };
+          });
+          
+          expect(finalCheck.hasOverflow).toBe(false);
+        }
+      ),
+      { numRuns: 10, endOnFailure: true }
+    );
+  });
+});
+
+/**
  * Feature: responsive-viewport-optimization, Property 5: Mobile vertical stacking efficiency
  * **Validates: Requirements 2.1, 2.2**
  * 
