@@ -49,9 +49,9 @@ export function Snackbar({
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 50, scale: 0.9 }}
           transition={{ duration: 0.3, type: 'spring', stiffness: 200 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-md"
+          className="fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4"
         >
-          <div className={`${colors[type]} text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3`}>
+          <div className={`${colors[type]} text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 w-full max-w-md`}>
             <div className="flex-shrink-0">
               {icons[type]}
             </div>
