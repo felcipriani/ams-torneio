@@ -62,31 +62,31 @@ export function TournamentConfig({
   };
 
   return (
-    <div className="bg-gray-800 rounded-lg p-6 space-y-6">
+    <div className="bg-gray-800 rounded-lg p-3 md:p-4 space-y-3">
       {/* Tournament Status */}
-      <div className="flex items-center justify-between pb-4 border-b border-gray-700">
-        <h2 className="text-2xl font-bold text-white">Configuração do Torneio</h2>
+      <div className="flex items-center justify-between pb-2 border-b border-gray-700">
+        <h2 className="text-lg md:text-xl font-bold text-white">Configuração do Torneio</h2>
         <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${
+          <div className={`w-2 h-2 rounded-full ${
             tournamentStatus === 'WAITING' ? 'bg-yellow-400' :
             tournamentStatus === 'DUEL_IN_PROGRESS' ? 'bg-green-400 animate-pulse' :
             'bg-blue-400'
           }`} />
-          <span className={`font-medium ${getStatusColor()}`}>
+          <span className={`text-sm font-medium ${getStatusColor()}`}>
             {getStatusText()}
           </span>
         </div>
       </div>
 
       {/* Meme Count */}
-      <div className="bg-gray-700 rounded-lg p-4">
+      <div className="bg-gray-700 rounded-lg p-3">
         <div className="flex items-center justify-between">
-          <span className="text-gray-300">Memes carregados:</span>
-          <span className="text-2xl font-bold text-white">{memeCount}</span>
+          <span className="text-sm text-gray-300">Memes carregados:</span>
+          <span className="text-xl font-bold text-white">{memeCount}</span>
         </div>
         {memeCount < 2 && (
-          <div className="flex items-start space-x-2 mt-3 text-yellow-400 text-sm">
-            <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start space-x-2 mt-2 text-yellow-400 text-xs">
+            <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
             <p>É necessário pelo menos 2 memes para iniciar o torneio</p>
           </div>
         )}
@@ -94,22 +94,22 @@ export function TournamentConfig({
 
       {/* Voting Time Configuration */}
       {tournamentStatus === 'WAITING' && (
-        <div className="space-y-3">
-          <label className="flex items-center space-x-2 text-white font-medium">
-            <Clock className="w-5 h-5" />
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-white text-sm font-medium">
+            <Clock className="w-4 h-4" />
             <span>Tempo de votação (segundos)</span>
           </label>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <input
               type="number"
               min="5"
               max="300"
               value={votingTime}
               onChange={(e) => setVotingTime(Math.max(5, parseInt(e.target.value) || 5))}
-              className="flex-1 px-4 py-3 bg-gray-700 text-white text-lg rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
+              className="flex-1 px-3 py-2 bg-gray-700 text-white text-base rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none"
             />
-            <span className="text-gray-400 text-sm">segundos</span>
+            <span className="text-gray-400 text-xs">segundos</span>
           </div>
 
           {/* Quick time presets */}
@@ -119,7 +119,7 @@ export function TournamentConfig({
                 key={time}
                 onClick={() => setVotingTime(time)}
                 className={`
-                  px-3 py-1 rounded text-sm transition-colors
+                  px-2.5 py-1 rounded text-xs transition-colors
                   ${votingTime === time 
                     ? 'bg-purple-600 text-white' 
                     : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -139,7 +139,7 @@ export function TournamentConfig({
           onClick={handleStart}
           disabled={!canStart || isStarting}
           className={`
-            w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center space-x-2 transition-all
+            w-full py-3 rounded-lg font-bold text-base flex items-center justify-center space-x-2 transition-all
             ${canStart && !isStarting
               ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl'
               : 'bg-gray-700 text-gray-500 cursor-not-allowed'
@@ -155,7 +155,7 @@ export function TournamentConfig({
             </>
           ) : (
             <>
-              <Play className="w-6 h-6" />
+              <Play className="w-5 h-5" />
               <span>Iniciar Torneio</span>
             </>
           )}
@@ -164,8 +164,8 @@ export function TournamentConfig({
 
       {/* Tournament Info */}
       {tournamentStatus !== 'WAITING' && (
-        <div className="bg-gray-700 rounded-lg p-4">
-          <p className="text-gray-300 text-center">
+        <div className="bg-gray-700 rounded-lg p-3">
+          <p className="text-gray-300 text-sm text-center">
             {tournamentStatus === 'DUEL_IN_PROGRESS' 
               ? 'O torneio está em andamento. Acompanhe os duelos abaixo.'
               : 'O torneio foi finalizado. Confira o campeão!'
