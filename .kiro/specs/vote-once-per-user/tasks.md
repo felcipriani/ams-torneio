@@ -15,7 +15,7 @@
   - **Property 6: IPv4 Extraction Consistency**
   - **Validates: Requirements 6.2**
 
-- [ ] 2. Implement Connection Map Manager
+- [x] 2. Implement Connection Map Manager
   - Create `server/connection-map.ts` with bidirectional mapping
   - Implement `addConnection`, `removeConnection`, `getSocketIds`, `getSessionToken` methods
   - Use Map<sessionToken, Set<socketId>> and Map<socketId, sessionToken> data structures
@@ -26,7 +26,7 @@
   - **Property 3: Connection Map Consistency**
   - **Validates: Requirements 3.1, 3.2, 3.3**
 
-- [ ] 3. Implement Vote Lock Manager
+- [x] 3. Implement Vote Lock Manager
   - Create `server/vote-lock-manager.ts` with vote tracking
   - Implement `hasVoted`, `recordVote`, `clearMatchLocks`, `clearAllLocks` methods
   - Use Map<matchId, Set<sessionToken>> data structure
@@ -41,7 +41,7 @@
   - **Property 5: Vote Lock Cleanup**
   - **Validates: Requirements 4.5**
 
-- [ ] 4. Implement Session Cookie Middleware
+- [x] 4. Implement Session Cookie Middleware
   - Create `server/session-middleware.ts` for HTTP request handling
   - Extract IPv4 from request headers
   - Generate session token using SessionTokenGenerator
@@ -53,7 +53,7 @@
   - **Property 7: Cookie Persistence**
   - **Validates: Requirements 2.4**
 
-- [ ] 5. Integrate middleware into Next.js server
+- [x] 5. Integrate middleware into Next.js server
   - Modify `server.ts` to apply session middleware before Next.js handler
   - Ensure middleware runs on all HTTP requests
   - Test cookie is set on first visit
