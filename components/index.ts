@@ -1,3 +1,5 @@
+'use client';
+
 // Public view components
 export { WaitingScreen } from './WaitingScreen';
 export { Timer } from './Timer';

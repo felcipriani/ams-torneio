@@ -1,0 +1,36 @@
+import { createServer } from 'http';
+import { parse } from 'url';
+import next from 'next';
+import { WebSocketServer } from './server/websocket';
+
+const dev = process.env.NODE_ENV !== 'production';
+const hostname = 'localhost';
+const port = 3000;
+
+// Create Next.js app
+const app = next({ dev, hostname, port });
+const handle = app.getRequestHandler();
+
+app.prepare().then(() => {
+  // Create HTTP server
+  const httpServer = createServer(async (req, res) => {
+    try {
+      const parsedUrl = parse(req.url!, true);
+      await handle(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error occurred handling', req.url, err);
+      res.statusCode = 500;
+      res.end('internal server error');
+    }
+  });
+
+  // Initialize WebSocket server
+  const wsServer = new WebSocketServer(httpServer);
+  console.log('WebSocket server initialized');
+
+  // Start listening
+  httpServer.listen(port, () => {
+    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`> WebSocket server ready with ${wsServer.getConnectedClientCount()} clients`);
+  });
+});

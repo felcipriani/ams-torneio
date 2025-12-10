@@ -1,7 +1,7 @@
 import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { TournamentManager } from './tournament-manager';
-import { InMemoryTournamentRepository } from './in-memory-repository';
+import { getRepositoryInstance } from './repository-singleton';
 import { 
   TournamentState, 
   VoteCastMessage, 
@@ -31,8 +31,8 @@ export class WebSocketServer {
       }
     });
 
-    // Initialize tournament manager with repository and state change callback
-    const repository = new InMemoryTournamentRepository();
+    // Initialize tournament manager with singleton repository and state change callback
+    const repository = getRepositoryInstance();
     this.tournamentManager = new TournamentManager(
       repository,
       (state: TournamentState) => this.broadcastState(state)

@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { InMemoryTournamentRepository } from '@/server/in-memory-repository';
-
-// Create a singleton repository instance
-const repository = new InMemoryTournamentRepository();
+import { getRepositoryInstance } from '@/server/repository-singleton';
 
 /**
  * GET /api/memes
@@ -10,7 +7,8 @@ const repository = new InMemoryTournamentRepository();
  */
 export async function GET() {
   try {
-    // Retrieve memes from repository
+    // Retrieve memes from singleton repository
+    const repository = getRepositoryInstance();
     const memes = await repository.getMemes();
 
     // Return JSON array

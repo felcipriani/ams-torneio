@@ -7,10 +7,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
 import { Meme } from '@/types';
-import { InMemoryTournamentRepository } from '@/server/in-memory-repository';
-
-// Create a singleton repository instance
-const repository = new InMemoryTournamentRepository();
+import { getRepositoryInstance } from '@/server/repository-singleton';
 
 // Maximum file size: 5MB
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -161,8 +158,16 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date()
     };
 
-    // Store meme via repository
+    // Store meme via singleton repository
+    const repository = getRepositoryInstance();
     await repository.addMeme(meme);
+
+    // Also update the tournament state to include this meme
+    const currentState = await repository.getState();
+    if (currentState) {
+      currentState.memes.push(meme);
+      await repository.setState(currentState);
+    }
 
     // Return meme metadata
     return NextResponse.json({

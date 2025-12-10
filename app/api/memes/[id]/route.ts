@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { InMemoryTournamentRepository } from '@/server/in-memory-repository';
+import { getRepositoryInstance } from '@/server/repository-singleton';
 import fs from 'fs/promises';
 import path from 'path';
-
-// Create a singleton repository instance
-const repository = new InMemoryTournamentRepository();
 
 /**
  * DELETE /api/memes/[id]
@@ -16,6 +13,9 @@ export async function DELETE(
 ) {
   try {
     const { id } = params;
+
+    // Get singleton repository instance
+    const repository = getRepositoryInstance();
 
     // Retrieve the meme to get the file path
     const meme = await repository.getMemeById(id);

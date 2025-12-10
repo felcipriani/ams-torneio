@@ -1,19 +1,26 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWebSocket } from '@/hooks/useWebSocket';
-import { 
-  UploadZone, 
-  MemeList, 
-  TournamentConfig, 
-  AdminDuelView, 
-  BracketVisualization 
-} from '@/components';
+import { UploadZone } from '@/components/UploadZone';
+import { MemeList } from '@/components/MemeList';
+import { TournamentConfig } from '@/components/TournamentConfig';
+import { AdminDuelView } from '@/components/AdminDuelView';
+import { BracketVisualization } from '@/components/BracketVisualization';
+import { Meme } from '@/types';
 
 export default function AdminView() {
   const { tournamentState, isConnected, error, startTournament } = useWebSocket();
-  const [memes, setMemes] = useState(tournamentState?.memes || []);
+  const [memes, setMemes] = useState<Meme[]>([]);
+
+  // Sync memes from tournament state only when tournament is active
+  // During WAITING status, we manage memes locally via uploads
+  useEffect(() => {
+    if (tournamentState?.status !== 'WAITING' && tournamentState?.memes) {
+      setMemes(tournamentState.memes);
+    }
+  }, [tournamentState?.status, tournamentState?.memes]);
 
   // Refresh memes list after upload
   const handleUploadComplete = useCallback(async () => {
@@ -48,11 +55,6 @@ export default function AdminView() {
   const handleStartTournament = useCallback(async (votingTimeSeconds: number) => {
     startTournament(votingTimeSeconds);
   }, [startTournament]);
-
-  // Update memes when tournament state changes
-  if (tournamentState?.memes && tournamentState.memes.length !== memes.length) {
-    setMemes(tournamentState.memes);
-  }
 
   // Show loading state while connecting
   if (!isConnected && !tournamentState) {

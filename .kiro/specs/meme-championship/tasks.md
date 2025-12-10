@@ -366,14 +366,14 @@
 - [x] 16. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 17. Perform exploratory testing with Playwright MCP
-  - [ ] 17.1 Test initial state
+- [x] 17. Perform exploratory testing with Playwright MCP
+  - [x] 17.1 Test initial state
     - Navigate to `/`
     - Verify waiting screen displays
     - Take screenshot
     - _Requirements: 9.1_
   
-  - [ ] 17.2 Test admin setup flow
+  - [x] 17.2 Test admin setup flow
     - Navigate to `/admin-view`
     - Upload 4 test images
     - Add captions
@@ -382,7 +382,7 @@
     - Take screenshot
     - _Requirements: 9.2_
   
-  - [ ] 17.3 Test tournament flow
+  - [x] 17.3 Test tournament flow
     - Click "Iniciar torneio"
     - Verify public view shows first duel
     - Verify timer counts down
@@ -393,7 +393,7 @@
     - Take screenshots
     - _Requirements: 9.3, 9.4_
   
-  - [ ] 17.4 Test winner flow
+  - [x] 17.4 Test winner flow
     - Complete all matches
     - Verify winner screen displays
     - Verify "Meme do Ano" indicator
