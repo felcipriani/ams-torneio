@@ -2,6 +2,7 @@ import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
 import { WebSocketServer } from './server/websocket';
+import { sessionMiddleware } from './server/session-middleware';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = 'localhost';
@@ -15,6 +16,9 @@ app.prepare().then(() => {
   // Create HTTP server
   const httpServer = createServer(async (req, res) => {
     try {
+      // Apply session middleware before Next.js handler
+      sessionMiddleware.handle(req, res);
+      
       const parsedUrl = parse(req.url!, true);
       await handle(req, res, parsedUrl);
     } catch (err) {
