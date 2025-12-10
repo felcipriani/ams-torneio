@@ -9,10 +9,10 @@ import path from 'path';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
 
     // Get singleton repository instance
     const repository = getRepositoryInstance();

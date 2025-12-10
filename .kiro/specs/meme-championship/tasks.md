@@ -400,5 +400,5 @@
     - Take screenshot
     - _Requirements: 9.5_
 
-- [-] 18. Final checkpoint - Ensure all tests pass
+- [x] 18. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.

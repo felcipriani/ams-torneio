@@ -82,11 +82,11 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
         }
         return updated;
       });
-    }
 
-    // Notify parent component
-    if (onUploadComplete) {
-      onUploadComplete();
+      // Notify parent component after each successful upload
+      if (result.success && onUploadComplete) {
+        onUploadComplete();
+      }
     }
   }, [onUploadComplete]);
 
