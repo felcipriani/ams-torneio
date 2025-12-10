@@ -18,6 +18,22 @@ const config: Config = {
       },
     },
     extend: {
+      height: {
+        'screen-10': '10vh',
+        'screen-12': '12vh',
+        'screen-40': '40vh',
+        'screen-50': '50vh',
+        'screen-70': '70vh',
+      },
+      maxHeight: {
+        'screen-40': '40vh',
+        'screen-50': '50vh',
+      },
+      aspectRatio: {
+        '4/3': '4 / 3',
+        '16/9': '16 / 9',
+        '16/10': '16 / 10',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
