@@ -17,7 +17,6 @@ interface UploadZoneProps {
 
 export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploads, setUploads] = useState<UploadStatus[]>([]);
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -56,33 +55,11 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
   };
 
   const processFiles = useCallback(async (files: File[]) => {
-    // Add files to upload list with 'uploading' status
-    const newUploads: UploadStatus[] = files.map(file => ({
-      file,
-      status: 'uploading' as const,
-    }));
-    
-    setUploads(prev => [...prev, ...newUploads]);
-
     // Upload each file
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const result = await uploadFile(file);
       
-      setUploads(prev => {
-        const updated = [...prev];
-        const index = updated.findIndex(u => u.file === file && u.status === 'uploading');
-        if (index !== -1) {
-          updated[index] = {
-            file,
-            status: result.success ? 'success' : 'error',
-            error: result.error,
-            memeId: result.memeId,
-          };
-        }
-        return updated;
-      });
-
       // Notify parent component after each successful upload
       if (result.success && onUploadComplete) {
         onUploadComplete();
@@ -105,9 +82,6 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
     }
   }, [processFiles]);
 
-  const removeUpload = (index: number) => {
-    setUploads(prev => prev.filter((_, i) => i !== index));
-  };
 
   return (
     <div className="space-y-4">
@@ -157,56 +131,6 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           </p>
         </div>
       </motion.div>
-
-      {/* Upload status list */}
-      {uploads.length > 0 && (
-        <div className="space-y-2">
-          {uploads.map((upload, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`
-                flex items-center justify-between p-4 rounded-lg
-                ${upload.status === 'success' ? 'bg-green-900/20 border border-green-700' : ''}
-                ${upload.status === 'error' ? 'bg-red-900/20 border border-red-700' : ''}
-                ${upload.status === 'uploading' ? 'bg-gray-800 border border-gray-700' : ''}
-              `}
-            >
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                {upload.status === 'uploading' && (
-                  <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                )}
-                {upload.status === 'success' && (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                )}
-                {upload.status === 'error' && (
-                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                )}
-                
-                <div className="flex-1 min-w-0">
-                  <p className="text-white truncate">{upload.file.name}</p>
-                  {upload.error && (
-                    <p className="text-sm text-red-400">{upload.error}</p>
-                  )}
-                  {upload.status === 'uploading' && (
-                    <p className="text-sm text-gray-400">Enviando...</p>
-                  )}
-                </div>
-              </div>
-              
-              {upload.status !== 'uploading' && (
-                <button
-                  onClick={() => removeUpload(index)}
-                  className="ml-2 p-1 text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
