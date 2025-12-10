@@ -2,6 +2,9 @@ import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { TournamentManager } from './tournament-manager';
 import { getRepositoryInstance } from './repository-singleton';
+import { ConnectionMapManager } from './connection-map';
+import { VoteLockManager } from './vote-lock-manager';
+import { SessionTokenGenerator } from './session-token';
 import { 
   TournamentState, 
   VoteCastMessage, 
@@ -17,6 +20,9 @@ export class WebSocketServer {
   private io: SocketIOServer;
   private tournamentManager: TournamentManager;
   private connectedClients: Set<string> = new Set();
+  private connectionMap: ConnectionMapManager;
+  private voteLockManager: VoteLockManager;
+  private sessionTokenGenerator: SessionTokenGenerator;
 
   /**
    * Initialize WebSocket server with HTTP server
@@ -30,6 +36,11 @@ export class WebSocketServer {
         methods: ['GET', 'POST']
       }
     });
+
+    // Initialize session tracking components
+    this.connectionMap = new ConnectionMapManager();
+    this.voteLockManager = new VoteLockManager();
+    this.sessionTokenGenerator = new SessionTokenGenerator();
 
     // Initialize tournament manager with singleton repository and state change callback
     const repository = getRepositoryInstance();
@@ -52,6 +63,13 @@ export class WebSocketServer {
     this.io.on('connection', (socket: Socket) => {
       console.log(`Client connected: ${socket.id}`);
       
+      // Extract or generate session token
+      const sessionToken = this.getSessionTokenFromSocket(socket);
+      console.log(`Session token for ${socket.id}: ${sessionToken.substring(0, 8)}...`);
+      
+      // Add socket to connection map
+      this.connectionMap.addConnection(sessionToken, socket.id);
+      
       // Track connected client
       this.connectedClients.add(socket.id);
 
@@ -61,11 +79,49 @@ export class WebSocketServer {
       // Handle disconnection
       socket.on('disconnect', () => {
         console.log(`Client disconnected: ${socket.id}`);
+        
+        // Remove socket from connection map
+        this.connectionMap.removeConnection(socket.id);
+        
         this.connectedClients.delete(socket.id);
       });
 
       // Register event handlers for this socket
       this.registerSocketHandlers(socket);
+    });
+  }
+
+  /**
+   * Get session token from socket
+   * First tries to get from socket auth, then generates from IPv4
+   * @param socket - Socket instance
+   * @returns Session token
+   */
+  private getSessionTokenFromSocket(socket: Socket): string {
+    // Try to get session token from auth (sent by client)
+    const auth = socket.handshake.auth;
+    if (auth && auth.sessionToken && typeof auth.sessionToken === 'string') {
+      return auth.sessionToken;
+    }
+    
+    // Generate from IPv4 if not provided
+    return this.sessionTokenGenerator.generateTokenFromSocket(socket);
+  }
+
+  /**
+   * Emit event to all sockets belonging to a session token
+   * @param sessionToken - Target user's session token
+   * @param event - Event name
+   * @param data - Event payload
+   */
+  private emitToUser(sessionToken: string, event: string, data: any): void {
+    const socketIds = this.connectionMap.getSocketIds(sessionToken);
+    
+    socketIds.forEach(socketId => {
+      const socket = this.io.sockets.sockets.get(socketId);
+      if (socket) {
+        socket.emit(event, data);
+      }
     });
   }
 
@@ -232,5 +288,29 @@ export class WebSocketServer {
    */
   public getConnectedClientCount(): number {
     return this.connectedClients.size;
+  }
+
+  /**
+   * Get the connection map manager instance
+   * @returns Connection map manager instance
+   */
+  public getConnectionMapManager(): ConnectionMapManager {
+    return this.connectionMap;
+  }
+
+  /**
+   * Get the vote lock manager instance
+   * @returns Vote lock manager instance
+   */
+  public getVoteLockManager(): VoteLockManager {
+    return this.voteLockManager;
+  }
+
+  /**
+   * Get the session token generator instance
+   * @returns Session token generator instance
+   */
+  public getSessionTokenGenerator(): SessionTokenGenerator {
+    return this.sessionTokenGenerator;
   }
 }
