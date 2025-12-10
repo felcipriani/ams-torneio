@@ -13,6 +13,25 @@ const RECONNECT_CONFIG = {
 };
 
 /**
+ * Get session token from cookie
+ * @returns Session token string or null if not found
+ */
+function getSessionToken(): string | null {
+  if (typeof document === 'undefined') {
+    return null; // Server-side rendering
+  }
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'meme_session') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
+/**
  * Custom hook for WebSocket connection to tournament server
  * Handles connection, disconnection, reconnection with exponential backoff
  * Subscribes to state:update events and provides methods to emit events
@@ -23,10 +42,12 @@ export function useWebSocket() {
   const [tournamentState, setTournamentState] = useState<TournamentState | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasVotedInCurrentMatch, setHasVotedInCurrentMatch] = useState(false);
   
   const socketRef = useRef<Socket | null>(null);
   const reconnectAttemptRef = useRef(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentMatchIdRef = useRef<string | null>(null);
 
   /**
    * Calculate exponential backoff delay
@@ -66,10 +87,16 @@ export function useWebSocket() {
    * Initialize WebSocket connection
    */
   const initializeSocket = useCallback(() => {
-    // Create socket connection
+    // Get session token from cookie
+    const sessionToken = getSessionToken();
+    
+    // Create socket connection with session token in auth
     const socket = io({
       reconnection: false, // We handle reconnection manually with exponential backoff
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
+      auth: {
+        sessionToken: sessionToken || undefined
+      }
     });
 
     socketRef.current = socket;
@@ -115,6 +142,26 @@ export function useWebSocket() {
     socket.on('state:update', (state: TournamentState) => {
       console.log('Received state update:', state.status);
       setTournamentState(state);
+      
+      // Reset vote state when match changes
+      const newMatchId = state.currentMatch?.id || null;
+      if (newMatchId !== currentMatchIdRef.current) {
+        currentMatchIdRef.current = newMatchId;
+        setHasVotedInCurrentMatch(false);
+      }
+    });
+
+    // Vote locked event - user successfully voted
+    socket.on('vote:locked', (payload: { matchId: string }) => {
+      console.log('Vote locked for match:', payload.matchId);
+      setHasVotedInCurrentMatch(true);
+    });
+
+    // Vote rejected event - duplicate vote attempt
+    socket.on('vote:rejected', (payload: { matchId: string; reason: string }) => {
+      console.error('Vote rejected:', payload.reason);
+      setError(`Vote rejected: ${payload.reason === 'ALREADY_VOTED' ? 'You have already voted in this match' : 'Match is not active'}`);
+      setHasVotedInCurrentMatch(true);
     });
 
     // Error event
@@ -198,6 +245,7 @@ export function useWebSocket() {
     tournamentState,
     isConnected,
     error,
+    hasVotedInCurrentMatch,
     castVote,
     startTournament,
     reconnect

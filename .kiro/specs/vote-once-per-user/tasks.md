@@ -95,7 +95,7 @@
   - Clear locks when status changes to TOURNAMENT_FINISHED
   - _Requirements: 5.4_
 
-- [ ] 10. Update client WebSocket hook to handle session tokens
+- [x] 10. Update client WebSocket hook to handle session tokens
   - Modify `hooks/useWebSocket.ts` to read session token from cookie
   - Implement `getSessionToken` helper function using `document.cookie`
   - Include session token in Socket.IO auth configuration
