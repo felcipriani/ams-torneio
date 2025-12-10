@@ -959,3 +959,357 @@ test.describe('Property 7: Animation performance preservation', () => {
     );
   });
 });
+
+/**
+ * Feature: responsive-viewport-optimization, Property 6: Admin scroll isolation
+ * **Validates: Requirements 5.2**
+ * 
+ * For any AdminView in WAITING state, the page header should remain fixed 
+ * while only the content area scrolls internally.
+ */
+test.describe('Property 6: Admin scroll isolation', () => {
+  test('AdminView header should remain fixed while content scrolls', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 1920 }), // Various viewport widths
+        fc.integer({ min: 600, max: 900 }),  // Shorter heights to force scrolling
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          
+          // Navigate to admin view
+          await page.goto('http://localhost:3000/admin-view');
+          await page.waitForLoadState('networkidle');
+          
+          // Check if we're on the admin view in WAITING state
+          const isAdminView = await page.locator('text=Painel Administrativo').isVisible().catch(() => false);
+          
+          if (isAdminView) {
+            // Find the header element
+            const header = page.locator('header').first();
+            const headerExists = await header.isVisible().catch(() => false);
+            
+            if (headerExists) {
+              // Measure initial header position
+              const initialHeaderPosition = await header.evaluate((el) => {
+                const rect = el.getBoundingClientRect();
+                return {
+                  top: rect.top,
+                  left: rect.left,
+                  height: rect.height,
+                  width: rect.width
+                };
+              });
+              
+              // Check if content area is scrollable
+              const scrollableContent = page.locator('div.flex-1.overflow-y-auto').first();
+              const hasScrollableContent = await scrollableContent.isVisible().catch(() => false);
+              
+              if (hasScrollableContent) {
+                // Get initial scroll position of content area
+                const initialContentScroll = await scrollableContent.evaluate((el) => {
+                  return {
+                    scrollTop: el.scrollTop,
+                    scrollHeight: el.scrollHeight,
+                    clientHeight: el.clientHeight,
+                    isScrollable: el.scrollHeight > el.clientHeight
+                  };
+                });
+                
+                // If content is scrollable, scroll it
+                if (initialContentScroll.isScrollable) {
+                  // Scroll the content area (not the page)
+                  await scrollableContent.evaluate((el) => {
+                    el.scrollTop = Math.min(200, el.scrollHeight - el.clientHeight);
+                  });
+                  
+                  // Wait for scroll to complete
+                  await page.waitForTimeout(100);
+                  
+                  // Measure header position after content scroll
+                  const afterScrollHeaderPosition = await header.evaluate((el) => {
+                    const rect = el.getBoundingClientRect();
+                    return {
+                      top: rect.top,
+                      left: rect.left,
+                      height: rect.height,
+                      width: rect.width
+                    };
+                  });
+                  
+                  // Verify header position remained fixed (didn't move with content scroll)
+                  expect(afterScrollHeaderPosition.top).toBe(initialHeaderPosition.top);
+                  expect(afterScrollHeaderPosition.left).toBe(initialHeaderPosition.left);
+                  expect(afterScrollHeaderPosition.height).toBe(initialHeaderPosition.height);
+                  expect(afterScrollHeaderPosition.width).toBe(initialHeaderPosition.width);
+                  
+                  // Verify content actually scrolled
+                  const afterScrollContentScroll = await scrollableContent.evaluate((el) => {
+                    return {
+                      scrollTop: el.scrollTop
+                    };
+                  });
+                  
+                  expect(afterScrollContentScroll.scrollTop).toBeGreaterThan(initialContentScroll.scrollTop);
+                  
+                  // Verify page itself didn't scroll (scroll isolation)
+                  const pageScrollTop = await page.evaluate(() => {
+                    return document.documentElement.scrollTop || document.body.scrollTop;
+                  });
+                  
+                  expect(pageScrollTop).toBe(0);
+                }
+              }
+              
+              // Verify header has fixed height constraint (h-[8vh])
+              const headerClass = await header.getAttribute('class');
+              expect(headerClass).toContain('h-[8vh]');
+              
+              // Verify main container uses flex-col and overflow-hidden
+              const mainContainer = page.locator('div.h-screen.flex.flex-col.overflow-hidden').first();
+              const hasCorrectLayout = await mainContainer.isVisible().catch(() => false);
+              expect(hasCorrectLayout).toBe(true);
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('AdminView content area should have internal scrolling', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 1920 }),
+        fc.integer({ min: 600, max: 900 }), // Shorter heights to encourage scrolling
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000/admin-view');
+          await page.waitForLoadState('networkidle');
+          
+          const isAdminView = await page.locator('text=Painel Administrativo').isVisible().catch(() => false);
+          
+          if (isAdminView) {
+            // Find the scrollable content container
+            const contentContainer = page.locator('div.flex-1.overflow-y-auto').first();
+            const contentExists = await contentContainer.isVisible().catch(() => false);
+            
+            if (contentExists) {
+              // Verify content container has correct classes
+              const contentClass = await contentContainer.getAttribute('class');
+              expect(contentClass).toContain('flex-1');
+              expect(contentClass).toContain('overflow-y-auto');
+              
+              // Measure content container properties
+              const contentProperties = await contentContainer.evaluate((el) => {
+                const styles = window.getComputedStyle(el);
+                return {
+                  overflowY: styles.overflowY,
+                  flex: styles.flex,
+                  scrollHeight: el.scrollHeight,
+                  clientHeight: el.clientHeight,
+                  isScrollable: el.scrollHeight > el.clientHeight
+                };
+              });
+              
+              // Verify overflow-y is set to auto or scroll
+              expect(['auto', 'scroll']).toContain(contentProperties.overflowY);
+              
+              // Verify flex-1 is applied (flex-grow: 1)
+              expect(contentProperties.flex).toContain('1');
+              
+              // If content is scrollable, verify scrolling works
+              if (contentProperties.isScrollable) {
+                // Scroll content
+                await contentContainer.evaluate((el) => {
+                  el.scrollTop = 100;
+                });
+                
+                await page.waitForTimeout(50);
+                
+                // Verify scroll happened
+                const scrollTop = await contentContainer.evaluate((el) => el.scrollTop);
+                expect(scrollTop).toBeGreaterThan(0);
+                
+                // Verify page body didn't scroll
+                const bodyScroll = await page.evaluate(() => {
+                  return document.documentElement.scrollTop || document.body.scrollTop;
+                });
+                expect(bodyScroll).toBe(0);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('AdminView meme list should have internal scrolling with max height', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.integer({ min: 768, max: 1920 }),
+        fc.integer({ min: 600, max: 900 }),
+        async (width, height) => {
+          await page.setViewportSize({ width, height });
+          await page.goto('http://localhost:3000/admin-view');
+          await page.waitForLoadState('networkidle');
+          
+          const isAdminView = await page.locator('text=Painel Administrativo').isVisible().catch(() => false);
+          
+          if (isAdminView) {
+            // Check if meme list container exists
+            const memeListContainer = page.locator('div.max-h-\\[40vh\\].overflow-y-auto').first();
+            const memeListExists = await memeListContainer.isVisible().catch(() => false);
+            
+            if (memeListExists) {
+              // Verify container has correct classes
+              const containerClass = await memeListContainer.getAttribute('class');
+              expect(containerClass).toContain('max-h-[40vh]');
+              expect(containerClass).toContain('overflow-y-auto');
+              
+              // Measure container properties
+              const containerProperties = await memeListContainer.evaluate((el) => {
+                const rect = el.getBoundingClientRect();
+                const styles = window.getComputedStyle(el);
+                const viewportHeight = window.innerHeight;
+                
+                return {
+                  height: rect.height,
+                  maxHeight: styles.maxHeight,
+                  overflowY: styles.overflowY,
+                  heightVh: (rect.height / viewportHeight) * 100,
+                  scrollHeight: el.scrollHeight,
+                  clientHeight: el.clientHeight
+                };
+              });
+              
+              // Verify max-height is set to 40vh
+              expect(containerProperties.maxHeight).toBe('40vh');
+              
+              // Verify height doesn't exceed 40vh (with 1vh tolerance)
+              expect(containerProperties.heightVh).toBeLessThanOrEqual(41);
+              
+              // Verify overflow-y is auto or scroll
+              expect(['auto', 'scroll']).toContain(containerProperties.overflowY);
+              
+              // If list has content and is scrollable, test scrolling
+              if (containerProperties.scrollHeight > containerProperties.clientHeight) {
+                // Scroll the meme list
+                await memeListContainer.evaluate((el) => {
+                  el.scrollTop = 50;
+                });
+                
+                await page.waitForTimeout(50);
+                
+                // Verify list scrolled
+                const listScrollTop = await memeListContainer.evaluate((el) => el.scrollTop);
+                expect(listScrollTop).toBeGreaterThan(0);
+                
+                // Verify parent content area didn't scroll
+                const contentContainer = page.locator('div.flex-1.overflow-y-auto').first();
+                const contentScrollTop = await contentContainer.evaluate((el) => el.scrollTop);
+                
+                // Content scroll should be 0 or unchanged (we only scrolled the meme list)
+                expect(contentScrollTop).toBe(0);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 20, endOnFailure: true }
+    );
+  });
+
+  test('AdminView should maintain scroll isolation across viewport resizes', async ({ page }) => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.tuple(
+          fc.record({
+            width: fc.integer({ min: 768, max: 1920 }),
+            height: fc.integer({ min: 600, max: 900 })
+          }),
+          fc.record({
+            width: fc.integer({ min: 768, max: 1920 }),
+            height: fc.integer({ min: 600, max: 900 })
+          })
+        ),
+        async ([viewport1, viewport2]) => {
+          // Set initial viewport
+          await page.setViewportSize(viewport1);
+          await page.goto('http://localhost:3000/admin-view');
+          await page.waitForLoadState('networkidle');
+          
+          const isAdminView = await page.locator('text=Painel Administrativo').isVisible().catch(() => false);
+          
+          if (isAdminView) {
+            const header = page.locator('header').first();
+            const contentContainer = page.locator('div.flex-1.overflow-y-auto').first();
+            
+            const headerExists = await header.isVisible().catch(() => false);
+            const contentExists = await contentContainer.isVisible().catch(() => false);
+            
+            if (headerExists && contentExists) {
+              // Scroll content if possible
+              const isScrollable = await contentContainer.evaluate((el) => {
+                return el.scrollHeight > el.clientHeight;
+              });
+              
+              if (isScrollable) {
+                await contentContainer.evaluate((el) => {
+                  el.scrollTop = 100;
+                });
+                await page.waitForTimeout(50);
+              }
+              
+              // Measure header position before resize
+              const headerBeforeResize = await header.evaluate((el) => {
+                const rect = el.getBoundingClientRect();
+                return { top: rect.top };
+              });
+              
+              // Resize viewport
+              await page.setViewportSize(viewport2);
+              await page.waitForTimeout(100);
+              
+              // Measure header position after resize
+              const headerAfterResize = await header.evaluate((el) => {
+                const rect = el.getBoundingClientRect();
+                return { top: rect.top };
+              });
+              
+              // Header should remain at top (position 0 or very close)
+              expect(headerAfterResize.top).toBe(0);
+              
+              // Verify scroll isolation still works after resize
+              const contentStillScrollable = await contentContainer.evaluate((el) => {
+                return el.scrollHeight > el.clientHeight;
+              });
+              
+              if (contentStillScrollable) {
+                // Try scrolling content after resize
+                await contentContainer.evaluate((el) => {
+                  el.scrollTop = 50;
+                });
+                await page.waitForTimeout(50);
+                
+                // Verify page didn't scroll
+                const pageScroll = await page.evaluate(() => {
+                  return document.documentElement.scrollTop || document.body.scrollTop;
+                });
+                expect(pageScroll).toBe(0);
+                
+                // Verify header still at top
+                const headerFinal = await header.evaluate((el) => {
+                  const rect = el.getBoundingClientRect();
+                  return { top: rect.top };
+                });
+                expect(headerFinal.top).toBe(0);
+              }
+            }
+          }
+        }
+      ),
+      { numRuns: 15, endOnFailure: true }
+    );
+  });
+});
