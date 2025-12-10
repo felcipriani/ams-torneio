@@ -461,6 +461,11 @@ export class TournamentManager {
       state.winner = winner;
       state.status = 'TOURNAMENT_FINISHED';
       
+      // Clear all vote locks when tournament ends
+      if (this.voteLockManager) {
+        this.voteLockManager.clearAllLocks();
+      }
+      
       // Save updated state
       await this.repository.setState(state);
       

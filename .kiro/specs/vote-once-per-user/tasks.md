@@ -84,13 +84,13 @@
   - **Property 8: Multi-Browser Same-IP Detection**
   - **Validates: Requirements 1.5, 2.3**
 
-- [ ] 8. Clear vote locks on match completion
+- [x] 8. Clear vote locks on match completion
   - Modify `completeCurrentMatch` in `server/tournament-manager.ts` to call VoteLockManager.clearMatchLocks
   - Pass VoteLockManager instance to TournamentManager constructor
   - Clear locks for completed match before advancing to next match
   - _Requirements: 4.5_
 
-- [ ] 9. Clear all vote locks on tournament end
+- [x] 9. Clear all vote locks on tournament end
   - Modify tournament end logic in `server/tournament-manager.ts` to call VoteLockManager.clearAllLocks
   - Clear locks when status changes to TOURNAMENT_FINISHED
   - _Requirements: 5.4_
