@@ -44,11 +44,12 @@ export class WebSocketServer {
     this.voteLockManager = new VoteLockManager();
     this.sessionTokenGenerator = new SessionTokenGenerator();
 
-    // Initialize tournament manager with singleton repository and state change callback
+    // Initialize tournament manager with singleton repository, state change callback, and vote lock manager
     const repository = getRepositoryInstance();
     this.tournamentManager = new TournamentManager(
       repository,
-      (state: TournamentState) => this.broadcastState(state)
+      (state: TournamentState) => this.broadcastState(state),
+      this.voteLockManager
     );
 
     // Initialize empty tournament state

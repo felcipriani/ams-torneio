@@ -7,6 +7,7 @@ import {
   Round,
   TournamentStatus 
 } from '../types';
+import { VoteLockManager } from './vote-lock-manager';
 
 /**
  * Tournament Manager handles all tournament business logic.
@@ -16,15 +17,22 @@ export class TournamentManager {
   private repository: ITournamentRepository;
   private timerInterval: NodeJS.Timeout | null = null;
   private onStateChange?: (state: TournamentState) => void;
+  private voteLockManager?: VoteLockManager;
 
   /**
    * Constructor accepts ITournamentRepository for dependency injection
    * @param repository - Any implementation of ITournamentRepository
    * @param onStateChange - Optional callback for state changes (used for broadcasting)
+   * @param voteLockManager - Optional VoteLockManager for clearing vote locks on match completion
    */
-  constructor(repository: ITournamentRepository, onStateChange?: (state: TournamentState) => void) {
+  constructor(
+    repository: ITournamentRepository, 
+    onStateChange?: (state: TournamentState) => void,
+    voteLockManager?: VoteLockManager
+  ) {
     this.repository = repository;
     this.onStateChange = onStateChange;
+    this.voteLockManager = voteLockManager;
   }
 
   /**
@@ -390,6 +398,11 @@ export class TournamentManager {
     matchInBracket.winner = winner;
     matchInBracket.status = 'COMPLETED';
     matchInBracket.completedAt = currentMatch.completedAt;
+    
+    // Clear vote locks for the completed match
+    if (this.voteLockManager) {
+      this.voteLockManager.clearMatchLocks(currentMatch.id);
+    }
     
     // Advance winner to next round
     this.advanceWinner(state, currentMatch, winner);
