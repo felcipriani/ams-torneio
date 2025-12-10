@@ -72,7 +72,7 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
       {memes.map((meme, index) => (
         <motion.div
           key={meme.id}
@@ -82,7 +82,7 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
           className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
         >
           {/* Image preview */}
-          <div className="relative w-full aspect-square bg-gray-700">
+          <div className="relative w-full aspect-[4/3] md:aspect-[16/10] bg-gray-700">
             <Image
               src={meme.imageUrl}
               alt={meme.caption}
@@ -93,15 +93,15 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
           </div>
 
           {/* Caption and actions */}
-          <div className="p-4 space-y-3">
+          <div className="p-2 md:p-3 space-y-2">
             {editingId === meme.id ? (
               // Edit mode
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <input
                   type="text"
                   value={editCaption}
                   onChange={(e) => setEditCaption(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
+                  className="w-full px-2 py-1.5 bg-gray-700 text-white text-sm rounded border border-gray-600 focus:border-purple-500 focus:outline-none"
                   placeholder="Legenda do meme"
                   autoFocus
                   onKeyDown={(e) => {
@@ -112,19 +112,19 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
                     }
                   }}
                 />
-                <div className="flex space-x-2">
+                <div className="flex space-x-1.5">
                   <button
                     onClick={() => handleSaveEdit(meme.id)}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
                   >
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3 h-3" />
                     <span>Salvar</span>
                   </button>
                   <button
                     onClick={handleCancelEdit}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-3 h-3" />
                     <span>Cancelar</span>
                   </button>
                 </div>
@@ -132,27 +132,27 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
             ) : (
               // View mode
               <>
-                <p className="text-white text-sm min-h-[2.5rem] line-clamp-2">
+                <p className="text-white text-xs md:text-sm min-h-[2rem] line-clamp-2">
                   {meme.caption}
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex space-x-1.5">
                   <button
                     onClick={() => handleStartEdit(meme)}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
+                    className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
                   >
-                    <Edit2 className="w-4 h-4" />
+                    <Edit2 className="w-3 h-3" />
                     <span>Editar</span>
                   </button>
                   <button
                     onClick={() => handleDelete(meme.id)}
                     disabled={deletingId === meme.id}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {deletingId === meme.id ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3 h-3" />
                         <span>Deletar</span>
                       </>
                     )}
