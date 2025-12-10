@@ -118,7 +118,7 @@ describe('InMemoryTournamentRepository - Property-Based Tests', () => {
           fc.constantFrom(...memes)
         ),
         config: fc.record({
-          votingTimeSeconds: fc.nat({ min: 5, max: 300 }),
+          votingTimeSeconds: fc.integer({ min: 5, max: 300 }),
         }),
       });
     });
