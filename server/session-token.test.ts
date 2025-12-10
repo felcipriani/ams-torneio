@@ -76,4 +76,178 @@ describe('SessionTokenGenerator', () => {
       );
     });
   });
+
+  /**
+   * Feature: vote-once-per-user, Property 6: IPv4 Extraction Consistency
+   * Validates: Requirements 6.2
+   * 
+   * For any socket with the same underlying IPv4 address (even with different 
+   * proxy headers), the extracted IPv4 should be consistent.
+   */
+  describe('Property 6: IPv4 Extraction Consistency', () => {
+    it('should extract the same IPv4 from X-Forwarded-For header consistently', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4) => {
+            // Create mock sockets with X-Forwarded-For header
+            const mockSocket1 = {
+              id: 'socket-1',
+              handshake: {
+                headers: {
+                  'x-forwarded-for': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            const mockSocket2 = {
+              id: 'socket-2',
+              handshake: {
+                headers: {
+                  'x-forwarded-for': `${ipv4}, 10.0.0.1, 10.0.0.2`
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Extract IPv4 from both sockets
+            const extracted1 = generator.extractIPv4(mockSocket1);
+            const extracted2 = generator.extractIPv4(mockSocket2);
+
+            // Both should extract the same client IP
+            expect(extracted1).toBe(ipv4);
+            expect(extracted2).toBe(ipv4);
+            expect(extracted1).toBe(extracted2);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should extract the same IPv4 from X-Real-IP header consistently', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4) => {
+            // Create mock socket with X-Real-IP header
+            const mockSocket = {
+              id: 'socket-1',
+              handshake: {
+                headers: {
+                  'x-real-ip': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Extract IPv4
+            const extracted = generator.extractIPv4(mockSocket);
+
+            // Should extract the correct IP
+            expect(extracted).toBe(ipv4);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should extract the same IPv4 from direct address consistently', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4) => {
+            // Create mock socket with direct address
+            const mockSocket1 = {
+              id: 'socket-1',
+              handshake: {
+                headers: {},
+                address: ipv4
+              }
+            } as unknown as Socket;
+
+            // Create another mock socket with IPv6-mapped IPv4
+            const mockSocket2 = {
+              id: 'socket-2',
+              handshake: {
+                headers: {},
+                address: `::ffff:${ipv4}`
+              }
+            } as unknown as Socket;
+
+            // Extract IPv4 from both
+            const extracted1 = generator.extractIPv4(mockSocket1);
+            const extracted2 = generator.extractIPv4(mockSocket2);
+
+            // Both should extract the same IP
+            expect(extracted1).toBe(ipv4);
+            expect(extracted2).toBe(ipv4);
+            expect(extracted1).toBe(extracted2);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should prioritize X-Forwarded-For over other headers', () => {
+      fc.assert(
+        fc.property(
+          // Generate two different IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4_forwarded, ipv4_real) => {
+            // Skip if IPs are the same
+            fc.pre(ipv4_forwarded !== ipv4_real);
+
+            // Create mock socket with both headers
+            const mockSocket = {
+              id: 'socket-1',
+              handshake: {
+                headers: {
+                  'x-forwarded-for': ipv4_forwarded,
+                  'x-real-ip': ipv4_real
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Extract IPv4
+            const extracted = generator.extractIPv4(mockSocket);
+
+            // Should prioritize X-Forwarded-For
+            expect(extracted).toBe(ipv4_forwarded);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
 });
