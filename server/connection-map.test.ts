@@ -95,7 +95,7 @@ describe('ConnectionMapManager - Property-Based Tests', () => {
           }
 
           // Verify consistency for each session token
-          for (const [sessionToken, expectedSocketIds] of expectedState.entries()) {
+          for (const [sessionToken, expectedSocketIds] of Array.from(expectedState.entries())) {
             const actualSocketIds = connectionMap.getSocketIds(sessionToken);
             const actualSet = new Set(actualSocketIds);
 
@@ -160,7 +160,7 @@ describe('ConnectionMapManager - Property-Based Tests', () => {
           }
 
           // Verify consistency for each session token
-          for (const [sessionToken, expectedSocketIds] of expectedState.entries()) {
+          for (const [sessionToken, expectedSocketIds] of Array.from(expectedState.entries())) {
             const actualSocketIds = connectionMap.getSocketIds(sessionToken);
             const actualSet = new Set(actualSocketIds);
 
@@ -174,7 +174,7 @@ describe('ConnectionMapManager - Property-Based Tests', () => {
           }
 
           // Verify removed session tokens return empty arrays
-          for (const [sessionToken] of expectedState.entries()) {
+          for (const [sessionToken] of Array.from(expectedState.entries())) {
             if (expectedState.get(sessionToken)!.size === 0) {
               const actualSocketIds = connectionMap.getSocketIds(sessionToken);
               expect(actualSocketIds.length).toBe(0);
