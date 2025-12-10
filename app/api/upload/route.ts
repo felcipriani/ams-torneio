@@ -162,13 +162,6 @@ export async function POST(request: NextRequest) {
     const repository = getRepositoryInstance();
     await repository.addMeme(meme);
 
-    // Also update the tournament state to include this meme
-    const currentState = await repository.getState();
-    if (currentState) {
-      currentState.memes.push(meme);
-      await repository.setState(currentState);
-    }
-
     // Return meme metadata
     return NextResponse.json({
       success: true,
