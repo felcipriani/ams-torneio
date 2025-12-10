@@ -204,4 +204,138 @@ describe('VoteLockManager - Property-Based Tests', () => {
       { numRuns: 100 }
     );
   });
+
+  /**
+   * **Feature: vote-once-per-user, Property 5: Vote Lock Cleanup**
+   * 
+   * For any match ID, after calling clearMatchLocks, no session tokens should 
+   * be marked as having voted in that match.
+   * 
+   * **Validates: Requirements 4.5**
+   */
+  it('should clear all vote locks for a specific match', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        matchIdArbitrary,
+        fc.array(sessionTokenArbitrary, { minLength: 1, maxLength: 20 }),
+        async (matchId, sessionTokens) => {
+          // Make session tokens unique
+          const uniqueTokens = Array.from(new Set(sessionTokens));
+
+          // Record votes for all users in the match
+          for (const sessionToken of uniqueTokens) {
+            voteLockManager.recordVote(sessionToken, matchId);
+          }
+
+          // Verify all users have voted
+          for (const sessionToken of uniqueTokens) {
+            expect(voteLockManager.hasVoted(sessionToken, matchId)).toBe(true);
+          }
+
+          // Clear the match locks
+          voteLockManager.clearMatchLocks(matchId);
+
+          // After clearing, no users should be marked as having voted
+          for (const sessionToken of uniqueTokens) {
+            expect(voteLockManager.hasVoted(sessionToken, matchId)).toBe(false);
+          }
+
+          // getVotersForMatch should return empty array
+          expect(voteLockManager.getVotersForMatch(matchId)).toEqual([]);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should clear match locks without affecting other matches', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.array(matchIdArbitrary, { minLength: 2, maxLength: 5 }),
+        fc.array(sessionTokenArbitrary, { minLength: 1, maxLength: 10 }),
+        async (matchIds, sessionTokens) => {
+          // Ensure we have unique match IDs
+          const uniqueMatchIds = Array.from(new Set(matchIds));
+          fc.pre(uniqueMatchIds.length >= 2);
+
+          const uniqueTokens = Array.from(new Set(sessionTokens));
+
+          // Record votes for all users in all matches
+          for (const matchId of uniqueMatchIds) {
+            for (const sessionToken of uniqueTokens) {
+              voteLockManager.recordVote(sessionToken, matchId);
+            }
+          }
+
+          // Pick the first match to clear
+          const matchToClear = uniqueMatchIds[0];
+          const otherMatches = uniqueMatchIds.slice(1);
+
+          // Clear locks for the first match
+          voteLockManager.clearMatchLocks(matchToClear);
+
+          // Verify the cleared match has no voters
+          for (const sessionToken of uniqueTokens) {
+            expect(voteLockManager.hasVoted(sessionToken, matchToClear)).toBe(false);
+          }
+
+          // Verify other matches still have their voters
+          for (const matchId of otherMatches) {
+            for (const sessionToken of uniqueTokens) {
+              expect(voteLockManager.hasVoted(sessionToken, matchId)).toBe(true);
+            }
+          }
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should handle clearing non-existent match locks gracefully', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        matchIdArbitrary,
+        async (matchId) => {
+          // Clear a match that was never created - should not throw
+          expect(() => voteLockManager.clearMatchLocks(matchId)).not.toThrow();
+          
+          // Should still return empty voters list
+          expect(voteLockManager.getVotersForMatch(matchId)).toEqual([]);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('should clear all locks across all matches', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.array(matchIdArbitrary, { minLength: 1, maxLength: 10 }),
+        fc.array(sessionTokenArbitrary, { minLength: 1, maxLength: 10 }),
+        async (matchIds, sessionTokens) => {
+          const uniqueMatchIds = Array.from(new Set(matchIds));
+          const uniqueTokens = Array.from(new Set(sessionTokens));
+
+          // Record votes for all users in all matches
+          for (const matchId of uniqueMatchIds) {
+            for (const sessionToken of uniqueTokens) {
+              voteLockManager.recordVote(sessionToken, matchId);
+            }
+          }
+
+          // Clear all locks
+          voteLockManager.clearAllLocks();
+
+          // Verify no users are marked as having voted in any match
+          for (const matchId of uniqueMatchIds) {
+            for (const sessionToken of uniqueTokens) {
+              expect(voteLockManager.hasVoted(sessionToken, matchId)).toBe(false);
+            }
+            expect(voteLockManager.getVotersForMatch(matchId)).toEqual([]);
+          }
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
 });
