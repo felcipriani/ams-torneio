@@ -8,9 +8,10 @@ import { Timer } from './Timer';
 interface DuelViewProps {
   match: Match;
   onVote: (matchId: string, choice: VoteChoice) => void;
+  error?: string | null;
 }
 
-export function DuelView({ match, onVote }: DuelViewProps) {
+export function DuelView({ match, onVote, error }: DuelViewProps) {
   // Determine if voting is enabled
   const isVotingEnabled = match.status === 'IN_PROGRESS' && match.timeRemaining > 0;
 
@@ -81,6 +82,23 @@ export function DuelView({ match, onVote }: DuelViewProps) {
           side="right"
         />
       </div>
+
+      {/* Error message */}
+      <AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-20 left-0 right-0 flex justify-center px-4"
+          >
+            <div className="bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg max-w-md">
+              <p className="text-sm md:text-base font-semibold">{error}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Status message */}
       <AnimatePresence>

@@ -108,7 +108,7 @@
   - Expose `hasVotedInCurrentMatch` state from hook
   - _Requirements: 1.1, 4.4_
 
-- [ ] 12. Handle vote:rejected event on client
+- [x] 12. Handle vote:rejected event on client
   - Add `vote:rejected` event listener in `hooks/useWebSocket.ts`
   - Display error message to user
   - Update local state to mark user as having voted

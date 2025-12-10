@@ -160,8 +160,16 @@ export function useWebSocket() {
     // Vote rejected event - duplicate vote attempt
     socket.on('vote:rejected', (payload: { matchId: string; reason: string }) => {
       console.error('Vote rejected:', payload.reason);
-      setError(`Vote rejected: ${payload.reason === 'ALREADY_VOTED' ? 'You have already voted in this match' : 'Match is not active'}`);
+      const errorMessage = payload.reason === 'ALREADY_VOTED' 
+        ? 'You have already voted in this match' 
+        : 'Match is not active';
+      setError(`Vote rejected: ${errorMessage}`);
       setHasVotedInCurrentMatch(true);
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     });
 
     // Error event

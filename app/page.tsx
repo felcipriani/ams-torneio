@@ -50,7 +50,7 @@ export default function Home() {
     if (tournamentState.status === 'DUEL_IN_PROGRESS' && tournamentState.currentMatch) {
       return { 
         key: `duel-${tournamentState.currentMatch.id}`, 
-        component: <DuelView match={tournamentState.currentMatch} onVote={castVote} />
+        component: <DuelView match={tournamentState.currentMatch} onVote={castVote} error={error} />
       };
     }
 
