@@ -22,10 +22,10 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
   const confettiColors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 overflow-hidden">
+    <div className="relative h-screen bg-gradient-to-br from-yellow-400 via-orange-500 to-red-500 overflow-hidden">
       {/* Confetti animation */}
       {showConfetti && (
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {Array.from({ length: confettiCount }).map((_, i) => (
             <motion.div
               key={i}
@@ -53,7 +53,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
       )}
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 md:p-8">
+      <div className="relative z-10 h-screen flex flex-col justify-center overflow-hidden p-4">
         {/* Title */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
@@ -64,9 +64,9 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
             damping: 20,
             delay: 0.2 
           }}
-          className="text-center mb-8"
+          className="text-center mb-4 max-h-[12vh]"
         >
-          <h1 className="text-6xl md:text-8xl font-black text-white mb-4 drop-shadow-2xl">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-2 drop-shadow-2xl">
             🏆 Meme do Ano 🏆
           </h1>
           <motion.div
@@ -79,7 +79,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
               ease: "easeInOut"
             }}
           >
-            <p className="text-3xl md:text-5xl font-bold text-yellow-200 drop-shadow-lg">
+            <p className="text-xl md:text-2xl font-bold text-yellow-200 drop-shadow-lg">
               Campeão!
             </p>
           </motion.div>
@@ -95,7 +95,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
             damping: 15,
             delay: 0.5 
           }}
-          className="max-w-2xl w-full"
+          className="max-w-2xl w-full mx-auto max-h-[50vh] flex items-center"
         >
           <motion.div
             animate={{ 
@@ -107,15 +107,15 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="bg-white rounded-2xl shadow-2xl overflow-hidden p-4 md:p-8"
+            className="bg-white rounded-2xl shadow-2xl overflow-hidden p-2 md:p-4 w-full"
           >
             {/* Image */}
-            <div className="relative w-full aspect-square rounded-xl overflow-hidden mb-6 shadow-xl">
+            <div className="relative w-full aspect-[4/3] md:aspect-[16/10] rounded-xl overflow-hidden mb-2 md:mb-4 shadow-xl">
               <Image
                 src={winner.imageUrl}
                 alt={winner.caption}
                 fill
-                className="object-cover"
+                className="object-contain"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
               />
@@ -126,7 +126,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="text-2xl md:text-4xl font-bold text-gray-800 text-center"
+              className="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 text-center"
             >
               {winner.caption}
             </motion.p>
@@ -138,9 +138,9 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="mt-8 text-center"
+          className="mt-4 text-center"
         >
-          <p className="text-2xl md:text-3xl text-white font-semibold drop-shadow-lg">
+          <p className="text-lg md:text-xl text-white font-semibold drop-shadow-lg">
             Parabéns ao vencedor! 🎉
           </p>
         </motion.div>
