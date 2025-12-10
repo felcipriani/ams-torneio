@@ -16,3 +16,4 @@ export { BracketVisualization } from './BracketVisualization';
 
 // Utility components
 export { ErrorBoundary } from './ErrorBoundary';
+export { Snackbar } from './Snackbar';

@@ -1,9 +1,11 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { Match, VoteChoice } from '@/types';
 import { MemeCard } from './MemeCard';
 import { Timer } from './Timer';
+import { Snackbar } from './Snackbar';
 
 interface DuelViewProps {
   match: Match;
@@ -13,9 +15,26 @@ interface DuelViewProps {
 }
 
 export function DuelView({ match, onVote, error, hasVotedInCurrentMatch = false }: DuelViewProps) {
+  const [showVotedSnackbar, setShowVotedSnackbar] = useState(false);
+  const [previousMatchId, setPreviousMatchId] = useState(match.id);
+
   // Determine if voting is enabled
   // Disable voting if user has already voted in this match
   const isVotingEnabled = match.status === 'IN_PROGRESS' && match.timeRemaining > 0 && !hasVotedInCurrentMatch;
+
+  // Show snackbar when user has voted
+  useEffect(() => {
+    // Reset snackbar when match changes
+    if (match.id !== previousMatchId) {
+      setPreviousMatchId(match.id);
+      setShowVotedSnackbar(false);
+    }
+
+    // Show snackbar when user votes
+    if (hasVotedInCurrentMatch && match.status === 'IN_PROGRESS') {
+      setShowVotedSnackbar(true);
+    }
+  }, [hasVotedInCurrentMatch, match.id, match.status, previousMatchId]);
 
   const handleLeftVote = () => {
     if (isVotingEnabled) {
@@ -102,9 +121,9 @@ export function DuelView({ match, onVote, error, hasVotedInCurrentMatch = false 
         )}
       </AnimatePresence>
 
-      {/* Status message */}
+      {/* Status message - only for completed or waiting states */}
       <AnimatePresence>
-        {!isVotingEnabled && (
+        {!isVotingEnabled && !hasVotedInCurrentMatch && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,15 +132,22 @@ export function DuelView({ match, onVote, error, hasVotedInCurrentMatch = false 
             className="absolute bottom-4 left-0 right-0 text-center"
           >
             <p className="text-xl md:text-2xl text-yellow-400 font-semibold">
-              {hasVotedInCurrentMatch && match.status === 'IN_PROGRESS'
-                ? '✓ Você já votou neste duelo!'
-                : match.status === 'COMPLETED' 
+              {match.status === 'COMPLETED' 
                 ? 'Duelo encerrado! Aguarde o próximo...' 
                 : 'Aguardando início...'}
             </p>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Snackbar for voted confirmation */}
+      <Snackbar
+        message="✓ Você já votou neste duelo!"
+        isVisible={showVotedSnackbar}
+        onClose={() => setShowVotedSnackbar(false)}
+        duration={4000}
+        type="success"
+      />
     </motion.div>
   );
 }
