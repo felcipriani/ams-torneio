@@ -9,7 +9,9 @@ import {
   TournamentState, 
   VoteCastMessage, 
   StartTournamentMessage,
-  ErrorMessage 
+  ErrorMessage,
+  VoteLockedMessage,
+  VoteRejectedMessage
 } from '../types';
 
 /**
@@ -169,7 +171,8 @@ export class WebSocketServer {
 
   /**
    * Handle vote:cast event from client
-   * Parses vote message, calls TournamentManager.processVote, broadcasts updated state
+   * Checks vote locks before processing, emits vote:rejected if already voted,
+   * records vote lock and emits vote:locked after successful vote
    * @param socket - Socket that sent the vote
    * @param payload - Vote payload containing matchId and choice
    */
@@ -191,11 +194,42 @@ export class WebSocketServer {
         return;
       }
 
+      // Extract session token from socket
+      const sessionToken = this.getSessionTokenFromSocket(socket);
+
+      // Check if user has already voted in this match
+      if (this.voteLockManager.hasVoted(sessionToken, matchId)) {
+        console.log(`Vote rejected: User ${sessionToken.substring(0, 8)}... already voted in match ${matchId}`);
+        
+        // Emit vote:rejected error to user only
+        const rejectedMessage: VoteRejectedMessage = {
+          type: 'vote:rejected',
+          payload: {
+            matchId,
+            reason: 'ALREADY_VOTED'
+          }
+        };
+        this.emitToUser(sessionToken, 'vote:rejected', rejectedMessage.payload);
+        return;
+      }
+
       // Process vote through tournament manager
       await this.tournamentManager.processVote(matchId, choice);
 
+      // Record vote lock for this user
+      this.voteLockManager.recordVote(sessionToken, matchId);
+
+      // Emit vote:locked event to user's sockets only
+      const lockedMessage: VoteLockedMessage = {
+        type: 'vote:locked',
+        payload: {
+          matchId
+        }
+      };
+      this.emitToUser(sessionToken, 'vote:locked', lockedMessage.payload);
+
       // State will be broadcast automatically via onStateChange callback
-      console.log(`Vote processed: ${choice} for match ${matchId}`);
+      console.log(`Vote processed: ${choice} for match ${matchId} by user ${sessionToken.substring(0, 8)}...`);
     } catch (error) {
       console.error('Error processing vote:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process vote';

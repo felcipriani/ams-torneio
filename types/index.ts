@@ -119,13 +119,45 @@ export interface ErrorMessage {
 }
 
 /**
+ * Vote locked message sent from server to client after successful vote
+ * Sent only to the user who voted
+ */
+export interface VoteLockedMessage {
+  type: 'vote:locked';
+  payload: {
+    matchId: string;
+  };
+}
+
+/**
+ * Vote rejected message sent from server to client when duplicate vote attempted
+ * Sent only to the user who attempted the duplicate vote
+ */
+export interface VoteRejectedMessage {
+  type: 'vote:rejected';
+  payload: {
+    matchId: string;
+    reason: 'ALREADY_VOTED' | 'MATCH_NOT_ACTIVE';
+  };
+}
+
+/**
+ * Socket authentication data sent from client to server on connection
+ */
+export interface SocketAuth {
+  sessionToken: string;
+}
+
+/**
  * Union type of all WebSocket messages
  */
 export type WebSocketMessage = 
   | StateUpdateMessage 
   | VoteCastMessage 
   | StartTournamentMessage 
-  | ErrorMessage;
+  | ErrorMessage
+  | VoteLockedMessage
+  | VoteRejectedMessage;
 
 // ============================================================================
 // Repository Interface (for Liskov Substitution Principle)

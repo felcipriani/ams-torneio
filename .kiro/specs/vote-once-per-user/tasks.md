@@ -59,7 +59,7 @@
   - Test cookie is set on first visit
   - _Requirements: 2.4_
 
-- [ ] 6. Enhance WebSocket Server with session tracking
+- [x] 6. Enhance WebSocket Server with session tracking
   - Modify `server/websocket.ts` to integrate ConnectionMapManager, VoteLockManager, and SessionTokenGenerator
   - Extract session token from socket auth or generate from IPv4 on connection
   - Add socket to connection map on connect event
@@ -71,7 +71,7 @@
   - **Property 4: Targeted Broadcast Isolation**
   - **Validates: Requirements 4.2, 4.3**
 
-- [ ] 7. Implement vote lock checking in vote handler
+- [x] 7. Implement vote lock checking in vote handler
   - Modify `handleVoteCast` in `server/websocket.ts` to check vote locks before processing
   - Extract session token from socket
   - Check if user has already voted using VoteLockManager
