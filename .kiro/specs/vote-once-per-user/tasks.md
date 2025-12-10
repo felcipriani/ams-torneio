@@ -22,7 +22,7 @@
   - Implement cleanup method for stale connections
   - _Requirements: 3.1, 3.2, 3.3, 6.4_
 
-- [ ]* 2.1 Write property test for connection map consistency
+- [x] 2.1 Write property test for connection map consistency
   - **Property 3: Connection Map Consistency**
   - **Validates: Requirements 3.1, 3.2, 3.3**
 
@@ -33,11 +33,11 @@
   - Implement `getVotersForMatch` for debugging
   - _Requirements: 1.3, 4.5, 5.4_
 
-- [ ]* 3.1 Write property test for vote lock enforcement
+- [ ] 3.1 Write property test for vote lock enforcement
   - **Property 2: Vote Lock Enforcement**
   - **Validates: Requirements 1.3**
 
-- [ ]* 3.2 Write property test for vote lock cleanup
+- [ ] 3.2 Write property test for vote lock cleanup
   - **Property 5: Vote Lock Cleanup**
   - **Validates: Requirements 4.5**
 
@@ -49,7 +49,7 @@
   - Add environment variable `SESSION_TOKEN_SALT` to `.env.example`
   - _Requirements: 2.4, 5.3_
 
-- [ ]* 4.1 Write property test for cookie persistence
+- [ ] 4.1 Write property test for cookie persistence
   - **Property 7: Cookie Persistence**
   - **Validates: Requirements 2.4**
 
@@ -67,7 +67,7 @@
   - Implement `emitToUser` method to send events to all sockets of a session token
   - _Requirements: 3.1, 3.2, 3.4, 4.2_
 
-- [ ]* 6.1 Write property test for targeted broadcast isolation
+- [ ] 6.1 Write property test for targeted broadcast isolation
   - **Property 4: Targeted Broadcast Isolation**
   - **Validates: Requirements 4.2, 4.3**
 
