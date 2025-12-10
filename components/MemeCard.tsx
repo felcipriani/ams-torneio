@@ -41,7 +41,7 @@ export function MemeCard({ meme, voteCount, onVote, disabled = false, side }: Me
         delay: side === 'left' ? 0.5 : 0.6,
         ease: [0.43, 0.13, 0.23, 0.96] // Custom easing for smooth motion
       }}
-      className="flex flex-col items-center space-y-4 p-2 md:p-4 bg-gray-800 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
+      className="flex h-fit w-[75%] md:w-full flex-col items-center space-y-4 p-2 md:p-4 bg-gray-800 rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-300"
       whileHover={!disabled ? { scale: 1.02, y: -5 } : {}}
     >
       {/* Vote count badge */}
@@ -56,7 +56,7 @@ export function MemeCard({ meme, voteCount, onVote, disabled = false, side }: Me
             src={meme.imageUrl}
             alt={meme.caption}
             fill
-            className="object-cover"
+            className="object-contain"
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
           />

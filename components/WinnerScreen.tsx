@@ -79,7 +79,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
               ease: "easeInOut"
             }}
           >
-            <p className="text-xl md:text-2xl font-bold text-yellow-200 drop-shadow-lg">
+            <p className="mb-4 text-xl md:text-2xl font-bold text-yellow-200 drop-shadow-lg">
               Campeão!
             </p>
           </motion.div>
@@ -95,7 +95,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
             damping: 15,
             delay: 0.5 
           }}
-          className="max-w-2xl w-full mx-auto max-h-[50vh] flex items-center"
+          className="max-w-2xl w-full mx-auto max-h-[56vh] flex items-center"
         >
           <motion.div
             animate={{ 
@@ -107,7 +107,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="bg-white rounded-2xl shadow-2xl overflow-hidden p-2 md:p-4 w-full"
+            className="bg-white rounded-2xl shadow-2xl overflow-hidden p-2 w-full"
           >
             {/* Image */}
             <div className="relative w-full aspect-[4/3] md:aspect-[16/10] rounded-xl overflow-hidden mb-2 md:mb-4 shadow-xl">
@@ -140,7 +140,7 @@ export function WinnerScreen({ winner }: WinnerScreenProps) {
           transition={{ delay: 1.5 }}
           className="mt-4 text-center"
         >
-          <p className="text-lg md:text-xl text-white font-semibold drop-shadow-lg">
+          <p className="mt-4 text-lg md:text-xl text-white font-semibold drop-shadow-lg">
             Parabéns ao vencedor! 🎉
           </p>
         </motion.div>

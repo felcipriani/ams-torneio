@@ -32,7 +32,7 @@ export function DuelView({ match, onVote }: DuelViewProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900"
+      className="h-full md:h-screen flex flex-col md:overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 md:justify-center justify-center"
     >
       {/* Header */}
       <motion.div 
@@ -64,7 +64,7 @@ export function DuelView({ match, onVote }: DuelViewProps) {
       </motion.div>
 
       {/* Meme Cards - Side by side on desktop, stacked on mobile */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 p-2 md:p-4 overflow-hidden max-w-7xl mx-auto w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 p-2 md:p-4 md:overflow-hidden max-w-7xl mx-auto w-full justify-items-center">
         <MemeCard
           meme={match.leftMeme}
           voteCount={match.votes.left}

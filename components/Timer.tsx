@@ -102,7 +102,7 @@ export function Timer({ timeRemaining, totalTime, size = 'large' }: TimerProps) 
         </div>
       </div>
       
-      <p className="mt-4 text-gray-400 text-sm">segundos restantes</p>
+      <p className="md:mt-2 mb-4 text-gray-400 text-sm">Segundos Restantes</p>
     </div>
   );
 }
