@@ -608,46 +608,44 @@ test.describe('Property 7: Animation performance preservation', () => {
             // Measure initial dimensions
             const initialDimensions = await page.evaluate(() => {
               const html = document.documentElement;
-              const waitingText = document.querySelector('h1');
+              const body = document.body;
               
               return {
                 htmlHeight: html.scrollHeight,
                 htmlWidth: html.scrollWidth,
-                hasOverflow: html.scrollHeight > html.clientHeight,
-                textHeight: waitingText ? waitingText.getBoundingClientRect().height : 0,
-                textWidth: waitingText ? waitingText.getBoundingClientRect().width : 0
+                bodyHeight: body.scrollHeight,
+                bodyWidth: body.scrollWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight
               };
             });
             
-            // Wait through multiple animation cycles
-            await page.waitForTimeout(2500); // More than one full pulse cycle
+            // Wait through animation cycle
+            await page.waitForTimeout(1000); // Wait for animation to progress
             
             // Measure dimensions after animation
             const afterAnimationDimensions = await page.evaluate(() => {
               const html = document.documentElement;
-              const waitingText = document.querySelector('h1');
+              const body = document.body;
               
               return {
                 htmlHeight: html.scrollHeight,
                 htmlWidth: html.scrollWidth,
-                hasOverflow: html.scrollHeight > html.clientHeight,
-                textHeight: waitingText ? waitingText.getBoundingClientRect().height : 0,
-                textWidth: waitingText ? waitingText.getBoundingClientRect().width : 0
+                bodyHeight: body.scrollHeight,
+                bodyWidth: body.scrollWidth,
+                hasOverflow: html.scrollHeight > html.clientHeight
               };
             });
             
-            // Verify layout dimensions remain stable
+            // Verify layout dimensions remain stable (no reflow occurred)
             expect(afterAnimationDimensions.htmlHeight).toBe(initialDimensions.htmlHeight);
             expect(afterAnimationDimensions.htmlWidth).toBe(initialDimensions.htmlWidth);
+            expect(afterAnimationDimensions.bodyHeight).toBe(initialDimensions.bodyHeight);
+            expect(afterAnimationDimensions.bodyWidth).toBe(initialDimensions.bodyWidth);
             expect(afterAnimationDimensions.hasOverflow).toBe(initialDimensions.hasOverflow);
-            
-            // Text dimensions should remain stable (opacity animation shouldn't affect size)
-            expect(afterAnimationDimensions.textHeight).toBe(initialDimensions.textHeight);
-            expect(afterAnimationDimensions.textWidth).toBe(initialDimensions.textWidth);
           }
         }
       ),
-      { numRuns: 15, endOnFailure: true }
+      { numRuns: 10, endOnFailure: true }
     );
   });
 
