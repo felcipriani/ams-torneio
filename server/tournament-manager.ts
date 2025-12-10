@@ -36,25 +36,27 @@ export class TournamentManager {
 
   /**
    * Initialize tournament with empty state
-   * Preserves existing memes if any
+   * Only initializes if state doesn't exist yet
    */
   async initializeEmptyState(): Promise<void> {
-    // Check if state already exists and preserve memes
+    // Check if state already exists
     const existingState = await this.repository.getState();
-    const existingMemes = existingState?.memes || [];
     
-    const emptyState: TournamentState = {
-      status: 'WAITING',
-      memes: existingMemes,
-      bracket: [],
-      currentMatch: null,
-      winner: null,
-      config: {
-        votingTimeSeconds: 30 // default
-      }
-    };
-    
-    await this.repository.setState(emptyState);
+    // Only initialize if no state exists
+    if (!existingState) {
+      const emptyState: TournamentState = {
+        status: 'WAITING',
+        memes: [],
+        bracket: [],
+        currentMatch: null,
+        winner: null,
+        config: {
+          votingTimeSeconds: 30 // default
+        }
+      };
+      
+      await this.repository.setState(emptyState);
+    }
   }
 
   /**

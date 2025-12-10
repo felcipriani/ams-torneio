@@ -54,8 +54,19 @@ export class InMemoryTournamentRepository implements ITournamentRepository {
   async addMeme(meme: Meme): Promise<void> {
     this.memes.set(meme.id, meme);
     
-    // Update state if it exists
-    if (this.state) {
+    // Always update state, create if doesn't exist
+    if (!this.state) {
+      this.state = {
+        status: 'WAITING',
+        memes: [meme],
+        bracket: [],
+        currentMatch: null,
+        winner: null,
+        config: {
+          votingTimeSeconds: 30
+        }
+      };
+    } else {
       this.state.memes.push(meme);
     }
   }
@@ -71,7 +82,7 @@ export class InMemoryTournamentRepository implements ITournamentRepository {
   async deleteMeme(id: string): Promise<void> {
     this.memes.delete(id);
     
-    // Update state if it exists
+    // Always update state if it exists
     if (this.state) {
       this.state.memes = this.state.memes.filter(meme => meme.id !== id);
     }
