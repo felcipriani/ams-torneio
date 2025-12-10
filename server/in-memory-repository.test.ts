@@ -65,7 +65,7 @@ describe('InMemoryTournamentRepository - Property-Based Tests', () => {
         right: fc.nat({ max: 1000 }),
       }),
       timeRemaining: fc.nat({ max: 300 }),
-      totalTime: fc.nat({ min: 10, max: 300 }),
+      totalTime: fc.integer({ min: 10, max: 300 }),
       status: matchStatusArbitrary,
       winner: fc.oneof(
         fc.constant(null),
