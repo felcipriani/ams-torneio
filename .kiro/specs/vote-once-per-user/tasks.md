@@ -114,14 +114,14 @@
   - Update local state to mark user as having voted
   - _Requirements: 1.3_
 
-- [ ] 13. Update DuelView component to disable buttons based on vote status
+- [x] 13. Update DuelView component to disable buttons based on vote status
   - Modify `components/DuelView.tsx` to use `hasVotedInCurrentMatch` from hook
   - Disable vote buttons when user has voted
   - Add visual indication that user has already voted
   - Persist disabled state across component re-renders
   - _Requirements: 1.1, 1.2, 1.4_
 
-- [ ] 14. Add new WebSocket message types to types
+- [x] 14. Add new WebSocket message types to types
   - Update `types/index.ts` to include `VoteLockedMessage`, `VoteRejectedMessage`, `SocketAuth` interfaces
   - Document new event types
   - _Requirements: All_
