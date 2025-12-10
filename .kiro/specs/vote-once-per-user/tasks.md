@@ -33,11 +33,11 @@
   - Implement `getVotersForMatch` for debugging
   - _Requirements: 1.3, 4.5, 5.4_
 
-- [ ] 3.1 Write property test for vote lock enforcement
+- [x] 3.1 Write property test for vote lock enforcement
   - **Property 2: Vote Lock Enforcement**
   - **Validates: Requirements 1.3**
 
-- [ ] 3.2 Write property test for vote lock cleanup
+- [x] 3.2 Write property test for vote lock cleanup
   - **Property 5: Vote Lock Cleanup**
   - **Validates: Requirements 4.5**
 
@@ -49,7 +49,7 @@
   - Add environment variable `SESSION_TOKEN_SALT` to `.env.example`
   - _Requirements: 2.4, 5.3_
 
-- [ ] 4.1 Write property test for cookie persistence
+- [x] 4.1 Write property test for cookie persistence
   - **Property 7: Cookie Persistence**
   - **Validates: Requirements 2.4**
 
@@ -67,7 +67,7 @@
   - Implement `emitToUser` method to send events to all sockets of a session token
   - _Requirements: 3.1, 3.2, 3.4, 4.2_
 
-- [ ] 6.1 Write property test for targeted broadcast isolation
+- [x] 6.1 Write property test for targeted broadcast isolation
   - **Property 4: Targeted Broadcast Isolation**
   - **Validates: Requirements 4.2, 4.3**
 
@@ -80,7 +80,7 @@
   - Emit `vote:locked` event to user's sockets only after successful vote
   - _Requirements: 1.3, 4.1, 4.2_
 
-- [ ]* 7.1 Write property test for multi-browser same-IP detection
+- [ ] 7.1 Write property test for multi-browser same-IP detection
   - **Property 8: Multi-Browser Same-IP Detection**
   - **Validates: Requirements 1.5, 2.3**
 
