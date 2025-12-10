@@ -250,4 +250,177 @@ describe('SessionTokenGenerator', () => {
       );
     });
   });
+
+  /**
+   * Feature: vote-once-per-user, Property 8: Multi-Browser Same-IP Detection
+   * Validates: Requirements 1.5, 2.3
+   * 
+   * For any two connections from different browsers but the same IPv4 address,
+   * both should generate identical session tokens.
+   */
+  describe('Property 8: Multi-Browser Same-IP Detection', () => {
+    it('should generate identical tokens for different browsers on same IPv4', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 address
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          // Generate random socket IDs to simulate different browsers
+          fc.string({ minLength: 10, maxLength: 20 }),
+          fc.string({ minLength: 10, maxLength: 20 }),
+          (ipv4, socketId1, socketId2) => {
+            // Ensure different socket IDs (different browsers)
+            fc.pre(socketId1 !== socketId2);
+
+            // Create mock sockets representing different browsers
+            // Browser 1 (e.g., Chrome)
+            const mockSocketBrowser1 = {
+              id: socketId1,
+              handshake: {
+                headers: {
+                  'x-forwarded-for': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Browser 2 (e.g., Firefox)
+            const mockSocketBrowser2 = {
+              id: socketId2,
+              handshake: {
+                headers: {
+                  'x-forwarded-for': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Generate tokens from both sockets
+            const token1 = generator.generateTokenFromSocket(mockSocketBrowser1);
+            const token2 = generator.generateTokenFromSocket(mockSocketBrowser2);
+
+            // Both browsers should get the same session token
+            // because they share the same IPv4 address
+            expect(token1).toBe(token2);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should generate identical tokens for same IP via different proxy headers', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 address
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          // Generate random socket IDs
+          fc.string({ minLength: 10, maxLength: 20 }),
+          fc.string({ minLength: 10, maxLength: 20 }),
+          (ipv4, socketId1, socketId2) => {
+            // Ensure different socket IDs
+            fc.pre(socketId1 !== socketId2);
+
+            // Browser 1 with X-Forwarded-For
+            const mockSocketBrowser1 = {
+              id: socketId1,
+              handshake: {
+                headers: {
+                  'x-forwarded-for': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Browser 2 with X-Real-IP
+            const mockSocketBrowser2 = {
+              id: socketId2,
+              handshake: {
+                headers: {
+                  'x-real-ip': ipv4
+                },
+                address: '127.0.0.1'
+              }
+            } as unknown as Socket;
+
+            // Browser 3 with direct address
+            const mockSocketBrowser3 = {
+              id: `${socketId1}-3`,
+              handshake: {
+                headers: {},
+                address: ipv4
+              }
+            } as unknown as Socket;
+
+            // Generate tokens from all sockets
+            const token1 = generator.generateTokenFromSocket(mockSocketBrowser1);
+            const token2 = generator.generateTokenFromSocket(mockSocketBrowser2);
+            const token3 = generator.generateTokenFromSocket(mockSocketBrowser3);
+
+            // All browsers should get the same session token
+            // regardless of how the IP was extracted
+            expect(token1).toBe(token2);
+            expect(token2).toBe(token3);
+            expect(token1).toBe(token3);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should generate identical tokens for same IP with IPv6-mapped addresses', () => {
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 address
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          // Generate random socket IDs
+          fc.string({ minLength: 10, maxLength: 20 }),
+          fc.string({ minLength: 10, maxLength: 20 }),
+          (ipv4, socketId1, socketId2) => {
+            // Ensure different socket IDs
+            fc.pre(socketId1 !== socketId2);
+
+            // Browser 1 with plain IPv4
+            const mockSocketBrowser1 = {
+              id: socketId1,
+              handshake: {
+                headers: {},
+                address: ipv4
+              }
+            } as unknown as Socket;
+
+            // Browser 2 with IPv6-mapped IPv4
+            const mockSocketBrowser2 = {
+              id: socketId2,
+              handshake: {
+                headers: {},
+                address: `::ffff:${ipv4}`
+              }
+            } as unknown as Socket;
+
+            // Generate tokens from both sockets
+            const token1 = generator.generateTokenFromSocket(mockSocketBrowser1);
+            const token2 = generator.generateTokenFromSocket(mockSocketBrowser2);
+
+            // Both should get the same session token
+            expect(token1).toBe(token2);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
 });
