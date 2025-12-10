@@ -20,7 +20,7 @@
   - Update Timer usage in DuelView to use size="small"
   - _Requirements: 1.4_
 
-- [ ] 4. Optimize MemeCard component
+- [x] 4. Optimize MemeCard component
   - Replace aspect-square with aspect-[4/3] md:aspect-[16/9] lg:aspect-[16/10]
   - Reduce padding from p-6 to p-2 md:p-4
   - Reduce vote badge size from w-12 h-12 to w-8 h-8 md:w-10 md:h-10
@@ -30,11 +30,11 @@
   - Change button text from text-lg to text-sm md:text-base
   - _Requirements: 1.2, 2.4, 7.1, 7.2_
 
-- [ ]* 4.1 Write property test for image aspect ratios
+- [ ] 4.1 Write property test for image aspect ratios
   - **Property 4: Image aspect ratio adaptation**
   - **Validates: Requirements 1.2, 2.4**
 
-- [ ] 5. Optimize DuelView component
+- [x] 5. Optimize DuelView component
   - Replace min-h-screen with h-screen and flex flex-col overflow-hidden
   - Create header section with fixed h-[10vh] md:h-[12vh]
   - Reduce header title from text-4xl md:text-6xl to text-2xl md:text-3xl lg:text-4xl
@@ -46,15 +46,15 @@
   - Add overflow-hidden to grid container
   - _Requirements: 1.1, 1.3, 2.1, 2.2, 2.3_
 
-- [ ]* 5.1 Write property test for viewport containment on desktop
+- [x] 5.1 Write property test for viewport containment on desktop
   - **Property 1: Viewport containment on desktop**
   - **Validates: Requirements 1.1, 5.3**
 
-- [ ]* 5.2 Write property test for mobile vertical stacking efficiency
+- [x] 5.2 Write property test for mobile vertical stacking efficiency
   - **Property 5: Mobile vertical stacking efficiency**
   - **Validates: Requirements 2.1, 2.2**
 
-- [ ] 6. Optimize WinnerScreen component
+- [x] 6. Optimize WinnerScreen component
   - Replace min-h-screen with h-screen flex flex-col justify-center overflow-hidden
   - Reduce title from text-6xl md:text-8xl to text-3xl md:text-4xl lg:text-5xl
   - Add max-h-[12vh] to title container
@@ -71,10 +71,10 @@
   - **Property 3: Typography hierarchy preservation**
   - **Validates: Requirements 7.1, 7.3**
 
-- [ ] 7. Checkpoint - Verify participant views
+- [x] 7. Checkpoint - Verify participant views
   - Ensure all tests pass, ask the user if questions arise
 
-- [ ] 8. Optimize AdminView component
+- [x] 8. Optimize AdminView component
   - Replace min-h-screen with h-screen flex flex-col overflow-hidden
   - Create fixed header with h-[8vh]
   - Reduce header title from text-4xl md:text-5xl to text-2xl md:text-3xl
@@ -85,7 +85,7 @@
   - Add max-h-[40vh] overflow-y-auto to meme list container
   - _Requirements: 5.1, 5.2, 5.4_
 
-- [ ] 9. Optimize UploadZone component (if needed)
+- [x] 9. Optimize UploadZone component (if needed)
   - Review current height and reduce if excessive
   - Ensure drag-and-drop area is compact but usable
   - Maintain minimum touch target sizes (44x44px)

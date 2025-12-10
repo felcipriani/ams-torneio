@@ -2,14 +2,7 @@
 
 import { useState, useCallback, DragEvent, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
-
-interface UploadStatus {
-  file: File;
-  status: 'uploading' | 'success' | 'error';
-  error?: string;
-  memeId?: string;
-}
+import { Upload } from 'lucide-react';
 
 interface UploadZoneProps {
   onUploadComplete?: () => void;
@@ -84,14 +77,14 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
 
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Drop zone */}
       <motion.div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          relative border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-4 md:p-6 text-center transition-all duration-200
           ${isDragging 
             ? 'border-purple-500 bg-purple-500/10' 
             : 'border-gray-600 bg-gray-800 hover:border-gray-500'
@@ -108,25 +101,25 @@ export function UploadZone({ onUploadComplete }: UploadZoneProps) {
           className="hidden"
         />
         
-        <div className="flex flex-col items-center space-y-4">
-          <Upload className="w-16 h-16 text-gray-400" />
+        <div className="flex flex-col items-center space-y-2 md:space-y-3">
+          <Upload className="w-10 h-10 md:w-12 md:h-12 text-gray-400" />
           
           <div>
-            <p className="text-xl text-white font-semibold mb-2">
+            <p className="text-base md:text-lg text-white font-semibold mb-1">
               Arraste imagens aqui
             </p>
-            <p className="text-gray-400 mb-4">
+            <p className="text-sm text-gray-400 mb-3">
               ou clique para selecionar arquivos
             </p>
             <label
               htmlFor="file-input"
-              className="inline-block px-6 py-3 bg-purple-600 text-white rounded-lg font-medium cursor-pointer hover:bg-purple-700 transition-colors"
+              className="flex items-center justify-center px-4 py-2.5 bg-purple-600 text-white text-sm md:text-base rounded-lg font-medium cursor-pointer hover:bg-purple-700 transition-colors min-h-[44px] min-w-[44px]"
             >
               Selecionar Arquivos
             </label>
           </div>
           
-          <p className="text-sm text-gray-500">
+          <p className="text-xs md:text-sm text-gray-500">
             PNG, JPG, JPEG ou WEBP (máx. 5MB)
           </p>
         </div>
