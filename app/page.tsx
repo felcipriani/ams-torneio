@@ -7,7 +7,7 @@ import { DuelView } from '@/components/DuelView';
 import { WinnerScreen } from '@/components/WinnerScreen';
 
 export default function Home() {
-  const { tournamentState, isConnected, error, castVote } = useWebSocket();
+  const { tournamentState, isConnected, error, castVote, hasVotedInCurrentMatch } = useWebSocket();
 
   // Show loading state while connecting
   if (!isConnected && !tournamentState) {
@@ -50,7 +50,7 @@ export default function Home() {
     if (tournamentState.status === 'DUEL_IN_PROGRESS' && tournamentState.currentMatch) {
       return { 
         key: `duel-${tournamentState.currentMatch.id}`, 
-        component: <DuelView match={tournamentState.currentMatch} onVote={castVote} error={error} />
+        component: <DuelView match={tournamentState.currentMatch} onVote={castVote} error={error} hasVotedInCurrentMatch={hasVotedInCurrentMatch} />
       };
     }
 

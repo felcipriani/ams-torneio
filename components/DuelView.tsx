@@ -9,11 +9,13 @@ interface DuelViewProps {
   match: Match;
   onVote: (matchId: string, choice: VoteChoice) => void;
   error?: string | null;
+  hasVotedInCurrentMatch?: boolean;
 }
 
-export function DuelView({ match, onVote, error }: DuelViewProps) {
+export function DuelView({ match, onVote, error, hasVotedInCurrentMatch = false }: DuelViewProps) {
   // Determine if voting is enabled
-  const isVotingEnabled = match.status === 'IN_PROGRESS' && match.timeRemaining > 0;
+  // Disable voting if user has already voted in this match
+  const isVotingEnabled = match.status === 'IN_PROGRESS' && match.timeRemaining > 0 && !hasVotedInCurrentMatch;
 
   const handleLeftVote = () => {
     if (isVotingEnabled) {
@@ -111,7 +113,9 @@ export function DuelView({ match, onVote, error }: DuelViewProps) {
             className="absolute bottom-4 left-0 right-0 text-center"
           >
             <p className="text-xl md:text-2xl text-yellow-400 font-semibold">
-              {match.status === 'COMPLETED' 
+              {hasVotedInCurrentMatch && match.status === 'IN_PROGRESS'
+                ? '✓ Você já votou neste duelo!'
+                : match.status === 'COMPLETED' 
                 ? 'Duelo encerrado! Aguarde o próximo...' 
                 : 'Aguardando início...'}
             </p>
