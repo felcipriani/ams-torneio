@@ -102,7 +102,7 @@
   - Add state for tracking if current user has voted
   - _Requirements: 2.5_
 
-- [ ] 11. Handle vote:locked event on client
+- [x] 11. Handle vote:locked event on client
   - Add `vote:locked` event listener in `hooks/useWebSocket.ts`
   - Update local state to mark user as having voted for current match
   - Expose `hasVotedInCurrentMatch` state from hook
