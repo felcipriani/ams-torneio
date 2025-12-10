@@ -14,6 +14,23 @@ export default function AdminView() {
   const { tournamentState, isConnected, error, startTournament } = useWebSocket();
   const [memes, setMemes] = useState<Meme[]>([]);
 
+  // Load memes on initial mount
+  useEffect(() => {
+    const loadMemes = async () => {
+      try {
+        const response = await fetch('/api/memes');
+        if (response.ok) {
+          const data = await response.json();
+          setMemes(data.memes);
+        }
+      } catch (error) {
+        console.error('Error loading memes:', error);
+      }
+    };
+    
+    loadMemes();
+  }, []);
+
   // Sync memes from tournament state only when tournament is active
   // During WAITING status, we manage memes locally via uploads
   useEffect(() => {
