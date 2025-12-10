@@ -1,19 +1,19 @@
 # Implementation Plan
 
-- [ ] 1. Configure Tailwind for viewport-based utilities
+- [x] 1. Configure Tailwind for viewport-based utilities
   - Extend tailwind.config.ts with custom height utilities (screen-10, screen-12, screen-40, screen-50, screen-70)
   - Add custom maxHeight utilities for viewport constraints
   - Add custom aspectRatio utilities (4/3, 16/9, 16/10)
   - _Requirements: 6.3, 6.4_
 
-- [ ] 2. Optimize WaitingScreen component
+- [x] 2. Optimize WaitingScreen component
   - Replace text-5xl md:text-7xl with text-2xl md:text-3xl lg:text-4xl
   - Change min-h-screen to h-screen with flex centering
   - Add max-h-[40vh] constraint to content container
   - Test animation still works smoothly with smaller elements
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 3. Optimize Timer component
+- [x] 3. Optimize Timer component
   - Add size prop with 'small' | 'medium' | 'large' variants
   - Implement size-based className mapping (w-20 h-20 for small, w-28 h-28 for medium, w-40 h-40 for large)
   - Adjust SVG circle radius and text sizes based on size prop
@@ -102,15 +102,15 @@
   - Verify internal scrolling works smoothly
   - _Requirements: 5.2_
 
-- [ ]* 12. Write property test for responsive scaling consistency
+- [ ] 12. Write property test for responsive scaling consistency
   - **Property 2: Responsive scaling consistency**
   - **Validates: Requirements 6.1, 6.2**
 
-- [ ]* 13. Write property test for admin scroll isolation
+- [ ] 13. Write property test for admin scroll isolation
   - **Property 6: Admin scroll isolation**
   - **Validates: Requirements 5.2**
 
-- [ ]* 14. Write property test for animation performance preservation
+- [ ] 14. Write property test for animation performance preservation
   - **Property 7: Animation performance preservation**
   - **Validates: Requirements 4.4, 7.4**
 

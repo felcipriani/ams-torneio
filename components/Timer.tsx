@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 interface TimerProps {
   timeRemaining: number;
   totalTime: number;
+  size?: 'small' | 'medium' | 'large';
 }
 
-export function Timer({ timeRemaining, totalTime }: TimerProps) {
+export function Timer({ timeRemaining, totalTime, size = 'large' }: TimerProps) {
   // Calculate progress percentage
   const progress = totalTime > 0 ? (timeRemaining / totalTime) * 100 : 0;
   
@@ -26,32 +27,59 @@ export function Timer({ timeRemaining, totalTime }: TimerProps) {
     return '#ef4444'; // red-500
   };
 
-  // Circle properties
-  const radius = 60;
-  const circumference = 2 * Math.PI * radius;
+  // Size-based configurations
+  const sizeConfig = {
+    small: {
+      containerClass: 'w-20 h-20',
+      svgClass: 'w-20 h-20',
+      center: 40,
+      radius: 30,
+      strokeWidth: 6,
+      textClass: 'text-3xl'
+    },
+    medium: {
+      containerClass: 'w-28 h-28',
+      svgClass: 'w-28 h-28',
+      center: 56,
+      radius: 45,
+      strokeWidth: 7,
+      textClass: 'text-4xl'
+    },
+    large: {
+      containerClass: 'w-40 h-40',
+      svgClass: 'w-40 h-40',
+      center: 80,
+      radius: 60,
+      strokeWidth: 8,
+      textClass: 'text-5xl'
+    }
+  };
+
+  const config = sizeConfig[size];
+  const circumference = 2 * Math.PI * config.radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="relative w-40 h-40">
-        <svg className="transform -rotate-90 w-40 h-40">
+      <div className={`relative ${config.containerClass}`}>
+        <svg className={`transform -rotate-90 ${config.svgClass}`}>
           {/* Background circle */}
           <circle
-            cx="80"
-            cy="80"
-            r={radius}
+            cx={config.center}
+            cy={config.center}
+            r={config.radius}
             stroke="currentColor"
-            strokeWidth="8"
+            strokeWidth={config.strokeWidth}
             fill="none"
             className="text-gray-700"
           />
           {/* Progress circle */}
           <motion.circle
-            cx="80"
-            cy="80"
-            r={radius}
+            cx={config.center}
+            cy={config.center}
+            r={config.radius}
             stroke={getStrokeColor()}
-            strokeWidth="8"
+            strokeWidth={config.strokeWidth}
             fill="none"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
@@ -65,7 +93,7 @@ export function Timer({ timeRemaining, totalTime }: TimerProps) {
         {/* Time display in center */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.span
-            className={`text-5xl font-bold ${getColor()}`}
+            className={`${config.textClass} font-bold ${getColor()}`}
             animate={timeRemaining <= 5 && timeRemaining > 0 ? { scale: [1, 1.1, 1] } : {}}
             transition={{ duration: 0.5, repeat: timeRemaining <= 5 ? Infinity : 0 }}
           >

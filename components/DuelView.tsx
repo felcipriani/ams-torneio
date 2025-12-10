@@ -59,7 +59,8 @@ export function DuelView({ match, onVote }: DuelViewProps) {
         >
           <Timer 
             timeRemaining={match.timeRemaining} 
-            totalTime={match.totalTime} 
+            totalTime={match.totalTime}
+            size="small"
           />
         </motion.div>
 
