@@ -85,47 +85,48 @@ export class TournamentManager {
     const bracket: Round[] = [];
     const numRounds = Math.ceil(Math.log2(memes.length));
     
-    // For the first round, we need to determine how many matches to create
-    // and which memes get byes
-    // If n is not a power of 2, some memes get byes to the next round
-    
-    // The number of memes that need to compete in round 1
+    // Calculate the number of first-round matches needed
+    // If we have n memes, we need to get down to the next power of 2
     const nextPowerOf2 = Math.pow(2, numRounds - 1);
-    const memesNeedingMatches = (memes.length - nextPowerOf2) * 2;
+    const firstRoundMatches = memes.length - nextPowerOf2;
     
+    let memeIndex = 0;
     let roundIndex = 0;
     
-    // Create first round with actual memes
-    const firstRoundMatches: Match[] = [];
-    for (let i = 0; i < memesNeedingMatches; i += 2) {
-      const match: Match = {
-        id: randomUUID(),
-        roundIndex: roundIndex,
-        matchIndex: firstRoundMatches.length,
-        leftMeme: memes[i],
-        rightMeme: memes[i + 1],
-        votes: { left: 0, right: 0 },
-        timeRemaining: votingTimeSeconds,
-        totalTime: votingTimeSeconds,
-        status: 'PENDING',
-        winner: null,
-        startedAt: null,
-        completedAt: null
-      };
-      firstRoundMatches.push(match);
-    }
-    
-    if (firstRoundMatches.length > 0) {
+    // Create first round with actual matches (if needed)
+    if (firstRoundMatches > 0) {
+      const matches: Match[] = [];
+      
+      for (let i = 0; i < firstRoundMatches; i++) {
+        const match: Match = {
+          id: randomUUID(),
+          roundIndex: roundIndex,
+          matchIndex: i,
+          leftMeme: memes[memeIndex],
+          rightMeme: memes[memeIndex + 1],
+          votes: { left: 0, right: 0 },
+          timeRemaining: votingTimeSeconds,
+          totalTime: votingTimeSeconds,
+          status: 'PENDING',
+          winner: null,
+          startedAt: null,
+          completedAt: null
+        };
+        matches.push(match);
+        memeIndex += 2;
+      }
+      
       bracket.push({
         roundIndex: roundIndex,
-        matches: firstRoundMatches,
+        matches: matches,
         completed: false
       });
       roundIndex++;
     }
     
-    // Calculate how many matches in subsequent rounds
-    let numMatchesInNextRound = firstRoundMatches.length + (memes.length - memesNeedingMatches);
+    // Calculate how many competitors advance to round 2
+    const round2Competitors = firstRoundMatches + (memes.length - firstRoundMatches * 2);
+    let numMatchesInNextRound = round2Competitors;
     
     // Create remaining rounds with placeholder matches
     while (numMatchesInNextRound > 1) {
@@ -243,34 +244,31 @@ export class TournamentManager {
     // Handle memes with byes - they advance to round 2 automatically
     const numRounds = Math.ceil(Math.log2(memes.length));
     const nextPowerOf2 = Math.pow(2, numRounds - 1);
-    const memesNeedingMatches = (memes.length - nextPowerOf2) * 2;
-    const memesWithByes = memes.slice(memesNeedingMatches);
+    const firstRoundMatches = memes.length - nextPowerOf2;
+    const memesInFirstRound = firstRoundMatches * 2;
+    const memesWithByes = memes.slice(memesInFirstRound);
     
-    // If there are byes, we need to populate the second round with those memes
-    if (memesWithByes.length > 0 && bracket.length > 1) {
-      const secondRound = bracket[1];
-      let byeIndex = 0;
+    // If there are byes, we need to populate the appropriate round with those memes
+    if (memesWithByes.length > 0) {
+      // Determine which round to populate (round 1 if no first round matches, otherwise round 2)
+      const targetRoundIndex = firstRoundMatches > 0 ? 1 : 0;
       
-      // Fill in the memes with byes in the second round
-      for (let i = 0; i < secondRound.matches.length; i++) {
-        const match = secondRound.matches[i];
+      if (targetRoundIndex < bracket.length) {
+        const targetRound = bracket[targetRoundIndex];
+        let byeIndex = 0;
         
-        // Determine how many winners from round 1 feed into this match
-        // and how many byes
-        const winnersFromRound1 = bracket[0].matches.length;
-        const totalSpotsInRound2 = secondRound.matches.length * 2;
-        const byesNeeded = totalSpotsInRound2 - winnersFromRound1;
-        
-        // Distribute byes across matches
-        if (byeIndex < memesWithByes.length) {
-          // This is a simplified approach - in a real bracket, byes would be
-          // distributed more strategically, but for this implementation
-          // we'll just fill them in order
-          if (i < Math.ceil(byesNeeded / 2)) {
+        // Fill in the memes with byes in the target round
+        for (let i = 0; i < targetRound.matches.length && byeIndex < memesWithByes.length; i++) {
+          const match = targetRound.matches[i];
+          
+          // Fill left side if empty
+          if (!match.leftMeme && byeIndex < memesWithByes.length) {
             match.leftMeme = memesWithByes[byeIndex];
             byeIndex++;
           }
-          if (byeIndex < memesWithByes.length && i < Math.ceil(byesNeeded / 2)) {
+          
+          // Fill right side if empty
+          if (!match.rightMeme && byeIndex < memesWithByes.length) {
             match.rightMeme = memesWithByes[byeIndex];
             byeIndex++;
           }
