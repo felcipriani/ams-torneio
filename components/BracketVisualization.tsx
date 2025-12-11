@@ -104,6 +104,11 @@ export function BracketVisualization({ bracket, currentMatchId }: BracketVisuali
                   const isCompleted = status === 'completed';
                   const isCurrent = status === 'current';
                   const isUpcoming = status === 'upcoming';
+                  
+                  // Check if memes are assigned yet (they might be null for future rounds)
+                  const hasLeftMeme = match.leftMeme != null;
+                  const hasRightMeme = match.rightMeme != null;
+                  const hasBothMemes = hasLeftMeme && hasRightMeme;
 
                   return (
                     <motion.div
@@ -135,74 +140,83 @@ export function BracketVisualization({ bracket, currentMatchId }: BracketVisuali
                         )}
                       </div>
 
-                      {/* Left Meme */}
-                      <div className={`
-                        flex items-center space-x-2 p-2 rounded
-                        ${isCompleted && match.winner?.id === match.leftMeme.id 
-                          ? 'bg-green-900/30 border border-green-700' 
-                          : 'bg-gray-700/50'
-                        }
-                      `}>
-                        <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-900 flex-shrink-0">
-                          <Image
-                            src={match.leftMeme.imageUrl}
-                            alt={match.leftMeme.caption}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
+                      {!hasBothMemes ? (
+                        // Show placeholder when memes aren't assigned yet
+                        <div className="text-center py-6 text-gray-500 text-sm">
+                          Aguardando vencedores da rodada anterior...
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm truncate">
-                            {match.leftMeme.caption}
-                          </p>
-                          {!isUpcoming && (
-                            <p className="text-gray-400 text-xs">
-                              {match.votes.left} votos
-                            </p>
-                          )}
-                        </div>
-                        {isCompleted && match.winner?.id === match.leftMeme.id && (
-                          <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />
-                        )}
-                      </div>
+                      ) : (
+                        <>
+                          {/* Left Meme */}
+                          <div className={`
+                            flex items-center space-x-2 p-2 rounded
+                            ${isCompleted && match.winner?.id === match.leftMeme.id 
+                              ? 'bg-green-900/30 border border-green-700' 
+                              : 'bg-gray-700/50'
+                            }
+                          `}>
+                            <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-900 flex-shrink-0">
+                              <Image
+                                src={match.leftMeme.imageUrl}
+                                alt={match.leftMeme.caption}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm truncate">
+                                {match.leftMeme.caption}
+                              </p>
+                              {!isUpcoming && (
+                                <p className="text-gray-400 text-xs">
+                                  {match.votes.left} votos
+                                </p>
+                              )}
+                            </div>
+                            {isCompleted && match.winner?.id === match.leftMeme.id && (
+                              <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                            )}
+                          </div>
 
-                      {/* VS Divider */}
-                      <div className="text-center">
-                        <span className="text-xs text-gray-500 font-bold">VS</span>
-                      </div>
+                          {/* VS Divider */}
+                          <div className="text-center">
+                            <span className="text-xs text-gray-500 font-bold">VS</span>
+                          </div>
 
-                      {/* Right Meme */}
-                      <div className={`
-                        flex items-center space-x-2 p-2 rounded
-                        ${isCompleted && match.winner?.id === match.rightMeme.id 
-                          ? 'bg-green-900/30 border border-green-700' 
-                          : 'bg-gray-700/50'
-                        }
-                      `}>
-                        <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-900 flex-shrink-0">
-                          <Image
-                            src={match.rightMeme.imageUrl}
-                            alt={match.rightMeme.caption}
-                            fill
-                            className="object-cover"
-                            sizes="48px"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm truncate">
-                            {match.rightMeme.caption}
-                          </p>
-                          {!isUpcoming && (
-                            <p className="text-gray-400 text-xs">
-                              {match.votes.right} votos
-                            </p>
-                          )}
-                        </div>
-                        {isCompleted && match.winner?.id === match.rightMeme.id && (
-                          <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />
-                        )}
-                      </div>
+                          {/* Right Meme */}
+                          <div className={`
+                            flex items-center space-x-2 p-2 rounded
+                            ${isCompleted && match.winner?.id === match.rightMeme.id 
+                              ? 'bg-green-900/30 border border-green-700' 
+                              : 'bg-gray-700/50'
+                            }
+                          `}>
+                            <div className="relative w-12 h-12 rounded overflow-hidden bg-gray-900 flex-shrink-0">
+                              <Image
+                                src={match.rightMeme.imageUrl}
+                                alt={match.rightMeme.caption}
+                                fill
+                                className="object-cover"
+                                sizes="48px"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm truncate">
+                                {match.rightMeme.caption}
+                              </p>
+                              {!isUpcoming && (
+                                <p className="text-gray-400 text-xs">
+                                  {match.votes.right} votos
+                                </p>
+                              )}
+                            </div>
+                            {isCompleted && match.winner?.id === match.rightMeme.id && (
+                              <Trophy className="w-4 h-4 text-yellow-400 flex-shrink-0" />
+                            )}
+                          </div>
+                        </>
+                      )}
                     </motion.div>
                   );
                 })}

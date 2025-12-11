@@ -18,7 +18,7 @@
   - **Property 4: File system cleanup**
   - **Validates: Requirements 1.5**
 
-- [ ] 3. Extend TournamentManager with reset functionality
+- [x] 3. Extend TournamentManager with reset functionality
   - Add `resetTournament()` method to `TournamentManager` class
   - Stop active timers using `stopTimer()` method
   - Get list of image URLs from current state before clearing
@@ -26,23 +26,23 @@
   - Return array of image URLs for deletion
   - _Requirements: 1.2, 1.3, 3.1, 3.2, 3.4, 3.5_
 
-- [ ] 3.1 Write property test for repository state clearing
+- [x] 3.1 Write property test for repository state clearing
   - **Property 1: Repository state clearing**
   - **Validates: Requirements 1.2, 3.1**
 
-- [ ] 3.2 Write property test for state reset to initial configuration
+- [x] 3.2 Write property test for state reset to initial configuration
   - **Property 2: State returns to initial configuration**
   - **Validates: Requirements 1.3, 3.5**
 
-- [ ] 3.3 Write property test for bracket clearing
+- [x] 3.3 Write property test for bracket clearing
   - **Property 7: Bracket structure clearing**
   - **Validates: Requirements 3.4**
 
-- [ ] 3.4 Write property test for match history clearing
+- [x] 3.4 Write property test for match history clearing
   - **Property 8: Match history clearing**
   - **Validates: Requirements 3.2**
 
-- [ ] 3.5 Write unit test for timer cleanup during reset
+- [x] 3.5 Write unit test for timer cleanup during reset
   - Verify timer is stopped when reset is called during active match
   - Verify no dangling intervals after reset
 
@@ -50,7 +50,7 @@
   - Verify reset works correctly when no memes are uploaded
   - Verify no errors occur with empty state
 
-- [ ] 4. Add reset event handler to WebSocket server
+- [x] 4. Add reset event handler to WebSocket server
   - Register `admin:reset` event handler in `WebSocketServer.registerSocketHandlers()`
   - Create `handleAdminReset()` method to process reset requests
   - Call `tournamentManager.resetTournament()` to get image URLs
@@ -68,18 +68,18 @@
   - Verify reset continues and logs error
   - Verify clients still receive reset notification
 
-- [ ] 5. Update client WebSocket hook to handle reset events
+- [x] 5. Update client WebSocket hook to handle reset events
   - Add `tournament:reset` event listener in `useWebSocket` hook
   - Clear local tournament state when reset event is received
   - Reset UI to waiting screen state
   - Clear any cached data (vote locks, match history)
   - _Requirements: 2.2, 2.3_
 
-- [ ] 5.1 Write property test for client state transition
+- [x] 5.1 Write property test for client state transition
   - **Property 5: Client state transition**
   - **Validates: Requirements 2.2**
 
-- [ ] 5.2 Write property test for client local data clearing
+- [x] 5.2 Write property test for client local data clearing
   - **Property 6: Client local data clearing**
   - **Validates: Requirements 2.3**
 

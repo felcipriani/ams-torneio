@@ -82,7 +82,7 @@ export function MemeCard({ meme, voteCount, onVote, disabled = false, side }: Me
         whileHover={!disabled ? { scale: 1.05 } : {}}
         whileTap={!disabled ? { scale: 0.95 } : {}}
       >
-        {disabled ? 'Votação Encerrada' : 'Votar'}
+        {disabled ? 'Você já Votou' : 'Votar'}
       </motion.button>
     </motion.div>
   );

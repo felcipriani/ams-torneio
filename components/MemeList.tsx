@@ -137,13 +137,6 @@ export function MemeList({ memes, onDelete, onCaptionUpdate }: MemeListProps) {
                 </p>
                 <div className="flex space-x-1.5">
                   <button
-                    onClick={() => handleStartEdit(meme)}
-                    className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
-                  >
-                    <Edit2 className="w-3 h-3" />
-                    <span>Editar</span>
-                  </button>
-                  <button
                     onClick={() => handleDelete(meme.id)}
                     disabled={deletingId === meme.id}
                     className="flex-1 flex items-center justify-center space-x-1 px-2 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-xs disabled:opacity-50 disabled:cursor-not-allowed"

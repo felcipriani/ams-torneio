@@ -80,7 +80,7 @@
   - Emit `vote:locked` event to user's sockets only after successful vote
   - _Requirements: 1.3, 4.1, 4.2_
 
-- [ ] 7.1 Write property test for multi-browser same-IP detection
+- [x] 7.1 Write property test for multi-browser same-IP detection
   - **Property 8: Multi-Browser Same-IP Detection**
   - **Validates: Requirements 1.5, 2.3**
 
@@ -126,10 +126,10 @@
   - Document new event types
   - _Requirements: All_
 
-- [ ] 15. Checkpoint - Ensure all tests pass
+- [x] 15. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 16. Add environment variable documentation
+- [x] 16. Add environment variable documentation
   - Update README.md or create .env.example with SESSION_TOKEN_SALT
   - Document how to generate secure salt (e.g., `openssl rand -hex 32`)
   - Document optional TRUSTED_PROXY_IPS configuration
