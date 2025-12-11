@@ -5,13 +5,16 @@ import { getRepositoryInstance } from './repository-singleton';
 import { ConnectionMapManager } from './connection-map';
 import { VoteLockManager } from './vote-lock-manager';
 import { SessionTokenGenerator } from './session-token';
+import { deleteUploadedImages } from './file-utils';
 import { 
   TournamentState, 
   VoteCastMessage, 
   StartTournamentMessage,
   ErrorMessage,
   VoteLockedMessage,
-  VoteRejectedMessage
+  VoteRejectedMessage,
+  ResetTournamentMessage,
+  TournamentResetMessage
 } from '../types';
 
 /**
@@ -141,6 +144,11 @@ export class WebSocketServer {
     // Admin start tournament handler
     socket.on('admin:start', async (message: StartTournamentMessage['payload']) => {
       await this.handleAdminStart(socket, message);
+    });
+
+    // Admin reset tournament handler
+    socket.on('admin:reset', async (message: ResetTournamentMessage['payload']) => {
+      await this.handleAdminReset(socket, message);
     });
   }
 
@@ -281,6 +289,60 @@ export class WebSocketServer {
       console.error('Error starting tournament:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start tournament';
       this.sendError(socket, errorMessage, 'START_ERROR');
+    }
+  }
+
+  /**
+   * Handle admin:reset event from client
+   * Resets tournament state, deletes uploaded images, and broadcasts reset notification
+   * @param socket - Socket that sent the reset command
+   * @param payload - Reset payload (empty object)
+   */
+  private async handleAdminReset(
+    socket: Socket,
+    payload: ResetTournamentMessage['payload']
+  ): Promise<void> {
+    try {
+      console.log('Processing tournament reset request');
+
+      // Call tournamentManager.resetTournament() to get image URLs
+      const imageUrls = await this.tournamentManager.resetTournament();
+      console.log(`Reset tournament, found ${imageUrls.length} images to delete`);
+
+      // Call file deletion utility with image URLs
+      const deleteResult = await deleteUploadedImages(imageUrls);
+      console.log(`Deleted ${deleteResult.deletedCount} images, ${deleteResult.errors.length} errors`);
+
+      // Log any file deletion errors (but don't fail the reset)
+      if (deleteResult.errors.length > 0) {
+        console.error('File deletion errors:', deleteResult.errors);
+      }
+
+      // Initialize empty state after reset
+      await this.tournamentManager.initializeEmptyState();
+
+      // Broadcast tournament:reset event to all connected clients
+      const resetMessage: TournamentResetMessage = {
+        type: 'tournament:reset',
+        payload: {
+          timestamp: new Date()
+        }
+      };
+      this.io.emit('tournament:reset', resetMessage.payload);
+      console.log(`Broadcast reset notification to ${this.connectedClients.size} clients`);
+
+      // Send success response to admin client
+      socket.emit('admin:reset:success', {
+        message: 'Tournament reset successfully',
+        deletedFiles: deleteResult.deletedCount,
+        errors: deleteResult.errors
+      });
+    } catch (error) {
+      console.error('Error resetting tournament:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset tournament';
+      
+      // Send error response to admin client
+      this.sendError(socket, errorMessage, 'RESET_ERROR');
     }
   }
 
