@@ -46,7 +46,7 @@
   - Verify timer is stopped when reset is called during active match
   - Verify no dangling intervals after reset
 
-- [ ]* 3.6 Write unit test for empty state reset
+- [x] 3.6 Write unit test for empty state reset
   - Verify reset works correctly when no memes are uploaded
   - Verify no errors occur with empty state
 
@@ -59,11 +59,11 @@
   - Send success/error response to admin client
   - _Requirements: 1.4, 2.1_
 
-- [ ]* 4.1 Write property test for client notification broadcast
+- [ ] 4.1 Write property test for client notification broadcast
   - **Property 3: All clients receive reset notification**
   - **Validates: Requirements 1.4, 2.1**
 
-- [ ]* 4.2 Write unit test for file deletion error handling
+- [ ] 4.2 Write unit test for file deletion error handling
   - Simulate file deletion failure
   - Verify reset continues and logs error
   - Verify clients still receive reset notification
@@ -97,7 +97,7 @@
   - Ensure tournament configuration form is visible after reset
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ]* 7.1 Write unit test for reset button visibility
+- [ ] 7.1 Write unit test for reset button visibility
   - Verify reset button is present in admin interface
   - Verify button is enabled in all tournament states
 
