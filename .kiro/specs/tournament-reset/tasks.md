@@ -83,14 +83,14 @@
   - **Property 6: Client local data clearing**
   - **Validates: Requirements 2.3**
 
-- [-] 6. Add reset button to admin interface
+- [x] 6. Add reset button to admin interface
   - Add "REINICIAR TORNEIO" button to admin view (`app/admin-view/page.tsx`)
   - Style button prominently (red/warning color to indicate destructive action)
   - Make button accessible at all times (not disabled based on tournament state)
   - Emit `admin:reset` WebSocket event on button click
   - _Requirements: 1.1_
 
-- [ ] 7. Add reset feedback to admin interface
+- [x] 7. Add reset feedback to admin interface
   - Show confirmation message on successful reset
   - Display error message with details if reset fails
   - Show loading state while reset is in progress
@@ -109,7 +109,7 @@
   - Simulate reset failure
   - Verify error message is displayed with details
 
-- [ ] 8. Verify upload functionality after reset
+- [x] 8. Verify upload functionality after reset
   - Manually test that meme upload works after reset
   - Verify new tournament can be started with newly uploaded memes
   - Verify no residual data from previous tournament affects new tournament
