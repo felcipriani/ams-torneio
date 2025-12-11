@@ -76,7 +76,8 @@ export class SessionTokenGenerator {
     }
     
     // Fallback to socket.id if IPv4 cannot be determined
-    console.warn(`Could not extract IPv4 for socket ${socket.id}, using socket.id as fallback`);
+    // Security logging: IPv4 extraction failure (no raw IP logged)
+    console.warn(`[SECURITY] IPv4 extraction failed for socket ${socket.id}, using socket.id as fallback`);
     return socket.id;
   }
 

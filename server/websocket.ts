@@ -208,7 +208,8 @@ export class WebSocketServer {
 
       // Check if user has already voted in this match
       if (this.voteLockManager.hasVoted(sessionToken, matchId)) {
-        console.log(`Vote rejected: User ${sessionToken.substring(0, 8)}... already voted in match ${matchId}`);
+        // Security logging: Duplicate vote attempt (session token logged, not raw IP)
+        console.warn(`[SECURITY] Duplicate vote attempt - Session: ${sessionToken.substring(0, 8)}..., Match: ${matchId}, Socket: ${socket.id}`);
         
         // Emit vote:rejected error to user only
         const rejectedMessage: VoteRejectedMessage = {

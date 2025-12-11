@@ -56,7 +56,8 @@ export class SessionMiddleware {
     }
     
     // Fallback to a default identifier if IPv4 cannot be determined
-    console.warn('Could not extract IPv4 from request, using fallback');
+    // Security logging: IPv4 extraction failure (no raw IP logged)
+    console.warn('[SECURITY] IPv4 extraction failed from HTTP request, using fallback identifier');
     return 'unknown';
   }
 
