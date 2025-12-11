@@ -172,6 +172,21 @@ export function useWebSocket() {
       }, 5000);
     });
 
+    // Tournament reset event - clear all local state
+    socket.on('tournament:reset', (payload: { timestamp: Date }) => {
+      console.log('Tournament reset received at:', payload.timestamp);
+      
+      // Clear tournament state (returns to waiting screen)
+      setTournamentState(null);
+      
+      // Clear vote tracking
+      setHasVotedInCurrentMatch(false);
+      currentMatchIdRef.current = null;
+      
+      // Clear any error messages
+      setError(null);
+    });
+
     // Error event
     socket.on('error', (errorPayload: { message: string; code: string }) => {
       console.error('Server error:', errorPayload);
