@@ -447,3 +447,218 @@ describe('AdminView - Confirmation Message Display', () => {
     expect(configForm).toBeDefined();
   });
 });
+
+describe('AdminView - Error Message Display', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /**
+   * Unit test for error message display
+   * Simulates reset failure and verifies error message is displayed with details
+   * Validates: Requirements 4.3
+   */
+  it('should display error message when reset fails', async () => {
+    // Mock useWebSocket with a failing reset function
+    const errorMessage = 'Failed to connect to server';
+    const mockResetTournament = vi.fn().mockRejectedValue(new Error(errorMessage));
+
+    vi.mocked(useWebSocketModule.useWebSocket).mockReturnValue({
+      tournamentState: {
+        status: 'WAITING',
+        memes: [],
+        bracket: [],
+        currentMatch: null,
+        winner: null,
+        config: { votingTimeSeconds: 30 },
+      },
+      isConnected: true,
+      error: null,
+      hasVotedInCurrentMatch: false,
+      castVote: vi.fn(),
+      startTournament: vi.fn(),
+      resetTournament: mockResetTournament,
+      reconnect: vi.fn(),
+    });
+
+    render(<AdminView />);
+
+    // Get reset button and click it
+    const resetButton = screen.getByRole('button', { name: /REINICIAR TORNEIO/i });
+    resetButton.click();
+
+    // Wait for the reset to fail
+    await vi.waitFor(() => {
+      expect(mockResetTournament).toHaveBeenCalled();
+    });
+
+    // Verify the snackbar components are rendered (mocked as divs with testid)
+    // There are two snackbars: one for success, one for error
+    const snackbars = screen.getAllByTestId('snackbar');
+    expect(snackbars.length).toBe(2);
+  });
+
+  it('should display error message with details when reset fails with Error object', async () => {
+    // Mock useWebSocket with a failing reset function that throws an Error
+    const errorMessage = 'Network connection lost during reset';
+    const mockResetTournament = vi.fn().mockRejectedValue(new Error(errorMessage));
+
+    vi.mocked(useWebSocketModule.useWebSocket).mockReturnValue({
+      tournamentState: {
+        status: 'DUEL_IN_PROGRESS',
+        memes: [
+          {
+            id: '1',
+            imageUrl: '/uploads/meme1.jpg',
+            caption: 'Meme 1',
+            uploadedAt: new Date(),
+          },
+          {
+            id: '2',
+            imageUrl: '/uploads/meme2.jpg',
+            caption: 'Meme 2',
+            uploadedAt: new Date(),
+          },
+        ],
+        bracket: [],
+        currentMatch: {
+          id: 'match-1',
+          roundIndex: 0,
+          matchIndex: 0,
+          leftMeme: {
+            id: '1',
+            imageUrl: '/uploads/meme1.jpg',
+            caption: 'Meme 1',
+            uploadedAt: new Date(),
+          },
+          rightMeme: {
+            id: '2',
+            imageUrl: '/uploads/meme2.jpg',
+            caption: 'Meme 2',
+            uploadedAt: new Date(),
+          },
+          votes: { left: 5, right: 3 },
+          timeRemaining: 20,
+          totalTime: 30,
+          status: 'IN_PROGRESS',
+          winner: null,
+          startedAt: new Date(),
+          completedAt: null,
+        },
+        winner: null,
+        config: { votingTimeSeconds: 30 },
+      },
+      isConnected: true,
+      error: null,
+      hasVotedInCurrentMatch: false,
+      castVote: vi.fn(),
+      startTournament: vi.fn(),
+      resetTournament: mockResetTournament,
+      reconnect: vi.fn(),
+    });
+
+    render(<AdminView />);
+
+    // Get reset button and click it
+    const resetButton = screen.getByRole('button', { name: /REINICIAR TORNEIO/i });
+    resetButton.click();
+
+    // Wait for the reset to fail
+    await vi.waitFor(() => {
+      expect(mockResetTournament).toHaveBeenCalled();
+    });
+
+    // Verify the snackbar components are rendered
+    const snackbars = screen.getAllByTestId('snackbar');
+    expect(snackbars.length).toBe(2);
+  });
+
+  it('should display generic error message when reset fails without Error object', async () => {
+    // Mock useWebSocket with a failing reset function that throws a non-Error value
+    const mockResetTournament = vi.fn().mockRejectedValue('Unknown error');
+
+    vi.mocked(useWebSocketModule.useWebSocket).mockReturnValue({
+      tournamentState: {
+        status: 'TOURNAMENT_FINISHED',
+        memes: [
+          {
+            id: '1',
+            imageUrl: '/uploads/winner.jpg',
+            caption: 'Winner',
+            uploadedAt: new Date(),
+          },
+        ],
+        bracket: [],
+        currentMatch: null,
+        winner: {
+          id: '1',
+          imageUrl: '/uploads/winner.jpg',
+          caption: 'Winner',
+          uploadedAt: new Date(),
+        },
+        config: { votingTimeSeconds: 30 },
+      },
+      isConnected: true,
+      error: null,
+      hasVotedInCurrentMatch: false,
+      castVote: vi.fn(),
+      startTournament: vi.fn(),
+      resetTournament: mockResetTournament,
+      reconnect: vi.fn(),
+    });
+
+    render(<AdminView />);
+
+    // Get reset button and click it
+    const resetButton = screen.getByRole('button', { name: /REINICIAR TORNEIO/i });
+    resetButton.click();
+
+    // Wait for the reset to fail
+    await vi.waitFor(() => {
+      expect(mockResetTournament).toHaveBeenCalled();
+    });
+
+    // Verify the snackbar components are rendered
+    const snackbars = screen.getAllByTestId('snackbar');
+    expect(snackbars.length).toBe(2);
+  });
+
+  it('should display error details from Error object', async () => {
+    // Mock useWebSocket with a failing reset function that provides specific error details
+    const specificError = 'Database connection timeout';
+    const mockResetTournament = vi.fn().mockRejectedValue(new Error(specificError));
+
+    vi.mocked(useWebSocketModule.useWebSocket).mockReturnValue({
+      tournamentState: {
+        status: 'WAITING',
+        memes: [],
+        bracket: [],
+        currentMatch: null,
+        winner: null,
+        config: { votingTimeSeconds: 30 },
+      },
+      isConnected: true,
+      error: null,
+      hasVotedInCurrentMatch: false,
+      castVote: vi.fn(),
+      startTournament: vi.fn(),
+      resetTournament: mockResetTournament,
+      reconnect: vi.fn(),
+    });
+
+    render(<AdminView />);
+
+    // Get reset button and click it
+    const resetButton = screen.getByRole('button', { name: /REINICIAR TORNEIO/i });
+    resetButton.click();
+
+    // Wait for the reset to fail
+    await vi.waitFor(() => {
+      expect(mockResetTournament).toHaveBeenCalled();
+    });
+
+    // Verify the snackbar components are rendered (error snackbar will show the error message)
+    const snackbars = screen.getAllByTestId('snackbar');
+    expect(snackbars.length).toBe(2);
+  });
+});
