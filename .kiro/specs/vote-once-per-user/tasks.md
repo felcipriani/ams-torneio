@@ -135,13 +135,13 @@
   - Document optional TRUSTED_PROXY_IPS configuration
   - _Requirements: 5.1_
 
-- [ ] 17. Add security logging
+- [x] 17. Add security logging
   - Log duplicate vote attempts with session token (not raw IP)
   - Log IPv4 extraction failures
   - Ensure no raw IPv4 addresses are logged
   - _Requirements: 5.5_
 
-- [ ]* 17.1 Write property test for no raw IP logging
+- [x] 17.1 Write property test for no raw IP logging
   - **Property: Security Logging**
   - **Validates: Requirements 5.2, 5.5**
 
