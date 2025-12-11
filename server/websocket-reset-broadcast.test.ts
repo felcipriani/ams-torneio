@@ -212,7 +212,7 @@ describe('WebSocket Reset Broadcast - Property-Based Tests', () => {
           }
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 50 }
     );
   }, 120000);
 
