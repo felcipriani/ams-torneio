@@ -566,4 +566,35 @@ export class TournamentManager {
       this.onStateChange(state);
     }
   }
+
+  /**
+   * Reset tournament to initial state
+   * Clears all state, stops timers, and returns image URLs for deletion
+   * 
+   * @returns Array of image URLs that need to be deleted from filesystem
+   */
+  async resetTournament(): Promise<string[]> {
+    // Stop active timers first
+    this.stopTimer();
+    
+    // Get current state to extract image URLs before clearing
+    const state = await this.repository.getState();
+    const imageUrls: string[] = [];
+    
+    if (state && state.memes) {
+      // Extract all image URLs from memes
+      imageUrls.push(...state.memes.map(meme => meme.imageUrl));
+    }
+    
+    // Clear all tournament state from repository
+    await this.repository.clearState();
+    
+    // Clear vote locks if vote lock manager is available
+    if (this.voteLockManager) {
+      this.voteLockManager.clearAllLocks();
+    }
+    
+    // Return array of image URLs for deletion
+    return imageUrls;
+  }
 }
