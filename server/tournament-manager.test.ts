@@ -404,4 +404,82 @@ describe('TournamentManager - Reset Functionality', () => {
     expect(imageUrls).toContain('/uploads/meme2.jpg');
     expect(imageUrls).toContain('/uploads/meme3.jpg');
   });
+
+  it('should allow upload functionality after reset', async () => {
+    // Create initial state with memes
+    const initialMemes: Meme[] = [
+      {
+        id: '1',
+        imageUrl: '/uploads/old-meme1.jpg',
+        caption: 'Old Meme 1',
+        uploadedAt: new Date(),
+      },
+      {
+        id: '2',
+        imageUrl: '/uploads/old-meme2.jpg',
+        caption: 'Old Meme 2',
+        uploadedAt: new Date(),
+      },
+    ];
+
+    const state: TournamentState = {
+      status: 'WAITING',
+      memes: initialMemes,
+      bracket: [],
+      currentMatch: null,
+      winner: null,
+      config: {
+        votingTimeSeconds: 30,
+      },
+    };
+
+    await repository.setState(state);
+
+    // Verify initial state has memes
+    const stateBefore = await repository.getState();
+    expect(stateBefore!.memes).toHaveLength(2);
+
+    // Reset tournament
+    await tournamentManager.resetTournament();
+
+    // Verify state is cleared
+    const stateAfterReset = await repository.getState();
+    expect(stateAfterReset).toBeNull();
+
+    // Verify upload functionality is enabled by adding new memes
+    const newMeme1: Meme = {
+      id: '3',
+      imageUrl: '/uploads/new-meme1.jpg',
+      caption: 'New Meme 1',
+      uploadedAt: new Date(),
+    };
+
+    const newMeme2: Meme = {
+      id: '4',
+      imageUrl: '/uploads/new-meme2.jpg',
+      caption: 'New Meme 2',
+      uploadedAt: new Date(),
+    };
+
+    // Add new memes to clean state
+    await repository.addMeme(newMeme1);
+    await repository.addMeme(newMeme2);
+
+    // Verify new memes can be added successfully
+    const stateAfterUpload = await repository.getState();
+    expect(stateAfterUpload).not.toBeNull();
+    expect(stateAfterUpload!.memes).toHaveLength(2);
+    expect(stateAfterUpload!.memes).toContainEqual(newMeme1);
+    expect(stateAfterUpload!.memes).toContainEqual(newMeme2);
+
+    // Verify old memes are not present
+    expect(stateAfterUpload!.memes).not.toContainEqual(initialMemes[0]);
+    expect(stateAfterUpload!.memes).not.toContainEqual(initialMemes[1]);
+
+    // Verify state is in WAITING status (ready for new tournament)
+    expect(stateAfterUpload!.status).toBe('WAITING');
+    expect(stateAfterUpload!.bracket).toEqual([]);
+    expect(stateAfterUpload!.currentMatch).toBeNull();
+    expect(stateAfterUpload!.winner).toBeNull();
+  });
 });
