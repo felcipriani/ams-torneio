@@ -36,3 +36,9 @@ next-env.d.ts
 
 # uploads
 /public/uploads
+
+# test results
+/test-results
+
+# environment variables
+.env
