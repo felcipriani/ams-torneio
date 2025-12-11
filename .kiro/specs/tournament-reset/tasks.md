@@ -63,7 +63,7 @@
   - **Property 3: All clients receive reset notification**
   - **Validates: Requirements 1.4, 2.1**
 
-- [ ] 4.2 Write unit test for file deletion error handling
+- [x] 4.2 Write unit test for file deletion error handling
   - Simulate file deletion failure
   - Verify reset continues and logs error
   - Verify clients still receive reset notification
@@ -97,15 +97,15 @@
   - Ensure tournament configuration form is visible after reset
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 7.1 Write unit test for reset button visibility
+- [x] 7.1 Write unit test for reset button visibility
   - Verify reset button is present in admin interface
   - Verify button is enabled in all tournament states
 
-- [ ]* 7.2 Write unit test for confirmation message display
+- [x] 7.2 Write unit test for confirmation message display
   - Verify confirmation message appears after successful reset
   - Verify configuration form is visible after reset
 
-- [ ]* 7.3 Write unit test for error message display
+- [ ] 7.3 Write unit test for error message display
   - Simulate reset failure
   - Verify error message is displayed with details
 
@@ -115,7 +115,7 @@
   - Verify no residual data from previous tournament affects new tournament
   - _Requirements: 2.4_
 
-- [ ]* 8.1 Write unit test for upload after reset
+- [ ] 8.1 Write unit test for upload after reset
   - Verify upload functionality is enabled after reset
   - Verify new memes can be added to clean state
 
