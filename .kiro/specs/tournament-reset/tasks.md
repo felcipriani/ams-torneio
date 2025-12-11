@@ -115,9 +115,9 @@
   - Verify no residual data from previous tournament affects new tournament
   - _Requirements: 2.4_
 
-- [ ] 8.1 Write unit test for upload after reset
+- [x] 8.1 Write unit test for upload after reset
   - Verify upload functionality is enabled after reset
   - Verify new memes can be added to clean state
 
-- [ ] 9. Checkpoint - Ensure all tests pass
+- [x] 9. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
