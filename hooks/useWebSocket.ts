@@ -235,16 +235,40 @@ export function useWebSocket() {
   /**
    * Reset the tournament (admin only)
    * Clears all state and returns all clients to waiting screen
+   * @returns Promise that resolves with success details or rejects with error
    */
-  const resetTournament = useCallback(() => {
-    if (!socketRef.current || !isConnected) {
-      console.error('Cannot reset tournament: not connected');
-      setError('Not connected to server');
-      return;
-    }
+  const resetTournament = useCallback((): Promise<{ deletedFiles: number; errors: any[] }> => {
+    return new Promise((resolve, reject) => {
+      if (!socketRef.current || !isConnected) {
+        console.error('Cannot reset tournament: not connected');
+        const errorMsg = 'Not connected to server';
+        setError(errorMsg);
+        reject(new Error(errorMsg));
+        return;
+      }
 
-    console.log('Resetting tournament');
-    socketRef.current.emit('admin:reset', {});
+      console.log('Resetting tournament');
+
+      // Set up one-time listeners for success/error responses
+      const successHandler = (response: { message: string; deletedFiles: number; errors: any[] }) => {
+        console.log('Reset successful:', response);
+        socketRef.current?.off('error', errorHandler);
+        resolve(response);
+      };
+
+      const errorHandler = (errorPayload: { message: string; code: string }) => {
+        console.error('Reset failed:', errorPayload);
+        socketRef.current?.off('admin:reset:success', successHandler);
+        setError(errorPayload.message);
+        reject(new Error(errorPayload.message));
+      };
+
+      socketRef.current.once('admin:reset:success', successHandler);
+      socketRef.current.once('error', errorHandler);
+
+      // Emit reset request
+      socketRef.current.emit('admin:reset', {});
+    });
   }, [isConnected]);
 
   /**

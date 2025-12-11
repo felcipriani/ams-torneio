@@ -8,11 +8,15 @@ import { MemeList } from '@/components/MemeList';
 import { TournamentConfig } from '@/components/TournamentConfig';
 import { AdminDuelView } from '@/components/AdminDuelView';
 import { BracketVisualization } from '@/components/BracketVisualization';
+import { Snackbar } from '@/components/Snackbar';
 import { Meme } from '@/types';
 
 export default function AdminView() {
   const { tournamentState, isConnected, error, startTournament, resetTournament } = useWebSocket();
   const [memes, setMemes] = useState<Meme[]>([]);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   // Load memes on initial mount
   useEffect(() => {
@@ -74,8 +78,32 @@ export default function AdminView() {
   }, [startTournament]);
 
   // Handle tournament reset
-  const handleResetTournament = useCallback(() => {
-    resetTournament();
+  const handleResetTournament = useCallback(async () => {
+    setIsResetting(true);
+    setResetError(null);
+    setResetSuccess(false);
+
+    try {
+      const result = await resetTournament();
+      console.log('Reset completed:', result);
+      
+      // Show success message
+      setResetSuccess(true);
+      
+      // Clear memes list to show empty state
+      setMemes([]);
+      
+      // If there were file deletion errors, log them but don't show to user
+      if (result.errors.length > 0) {
+        console.warn('Some files could not be deleted:', result.errors);
+      }
+    } catch (error) {
+      console.error('Reset failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to reset tournament';
+      setResetError(errorMessage);
+    } finally {
+      setIsResetting(false);
+    }
   }, [resetTournament]);
 
   // Show loading state while connecting
@@ -139,12 +167,15 @@ export default function AdminView() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           onClick={handleResetTournament}
-          disabled={!isConnected}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg transition-colors duration-200 text-sm md:text-base whitespace-nowrap"
+          disabled={!isConnected || isResetting}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg transition-colors duration-200 text-sm md:text-base whitespace-nowrap flex items-center gap-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          REINICIAR TORNEIO
+          {isResetting && (
+            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+          )}
+          {isResetting ? 'REINICIANDO...' : 'REINICIAR TORNEIO'}
         </motion.button>
       </header>
 
@@ -263,6 +294,24 @@ export default function AdminView() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Reset Success Notification */}
+      <Snackbar
+        message="Torneio reiniciado com sucesso! Pronto para um novo torneio."
+        isVisible={resetSuccess}
+        onClose={() => setResetSuccess(false)}
+        duration={5000}
+        type="success"
+      />
+
+      {/* Reset Error Notification */}
+      <Snackbar
+        message={resetError || 'Erro ao reiniciar torneio'}
+        isVisible={!!resetError}
+        onClose={() => setResetError(null)}
+        duration={7000}
+        type="error"
+      />
     </div>
   );
 }
