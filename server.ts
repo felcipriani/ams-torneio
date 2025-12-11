@@ -1,3 +1,7 @@
+// CRITICAL: Load environment variables FIRST before any other imports
+// This ensures process.env is populated before singleton instances are created
+import './server/env';
+
 import { createServer } from 'http';
 import { parse } from 'url';
 import next from 'next';
