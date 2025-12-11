@@ -233,6 +233,21 @@ export function useWebSocket() {
   }, [isConnected]);
 
   /**
+   * Reset the tournament (admin only)
+   * Clears all state and returns all clients to waiting screen
+   */
+  const resetTournament = useCallback(() => {
+    if (!socketRef.current || !isConnected) {
+      console.error('Cannot reset tournament: not connected');
+      setError('Not connected to server');
+      return;
+    }
+
+    console.log('Resetting tournament');
+    socketRef.current.emit('admin:reset', {});
+  }, [isConnected]);
+
+  /**
    * Manually reconnect to the server
    */
   const reconnect = useCallback(() => {
@@ -271,6 +286,7 @@ export function useWebSocket() {
     hasVotedInCurrentMatch,
     castVote,
     startTournament,
+    resetTournament,
     reconnect
   };
 }

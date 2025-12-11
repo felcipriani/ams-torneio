@@ -83,7 +83,7 @@
   - **Property 6: Client local data clearing**
   - **Validates: Requirements 2.3**
 
-- [ ] 6. Add reset button to admin interface
+- [-] 6. Add reset button to admin interface
   - Add "REINICIAR TORNEIO" button to admin view (`app/admin-view/page.tsx`)
   - Style button prominently (red/warning color to indicate destructive action)
   - Make button accessible at all times (not disabled based on tournament state)

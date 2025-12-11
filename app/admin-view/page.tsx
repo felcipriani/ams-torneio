@@ -11,7 +11,7 @@ import { BracketVisualization } from '@/components/BracketVisualization';
 import { Meme } from '@/types';
 
 export default function AdminView() {
-  const { tournamentState, isConnected, error, startTournament } = useWebSocket();
+  const { tournamentState, isConnected, error, startTournament, resetTournament } = useWebSocket();
   const [memes, setMemes] = useState<Meme[]>([]);
 
   // Load memes on initial mount
@@ -73,6 +73,11 @@ export default function AdminView() {
     startTournament(votingTimeSeconds);
   }, [startTournament]);
 
+  // Handle tournament reset
+  const handleResetTournament = useCallback(() => {
+    resetTournament();
+  }, [resetTournament]);
+
   // Show loading state while connecting
   if (!isConnected && !tournamentState) {
     return (
@@ -113,12 +118,12 @@ export default function AdminView() {
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
       {/* Fixed Header */}
-      <header className="h-[8vh] flex flex-col justify-center px-4 md:px-8">
+      <header className="h-[8vh] flex items-center justify-between px-4 md:px-8">
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center"
+          className="flex-1 text-center"
         >
           <h1 className="text-2xl md:text-3xl font-bold text-white">
             Painel Administrativo
@@ -127,6 +132,20 @@ export default function AdminView() {
             Campeonato de Memes
           </p>
         </motion.div>
+        
+        {/* Reset Button - Always visible */}
+        <motion.button
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          onClick={handleResetTournament}
+          disabled={!isConnected}
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg transition-colors duration-200 text-sm md:text-base whitespace-nowrap"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          REINICIAR TORNEIO
+        </motion.button>
       </header>
 
       {/* Scrollable Content */}
