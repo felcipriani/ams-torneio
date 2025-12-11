@@ -142,6 +142,24 @@ export interface VoteRejectedMessage {
 }
 
 /**
+ * Reset tournament message sent from admin client to server
+ */
+export interface ResetTournamentMessage {
+  type: 'admin:reset';
+  payload: {};
+}
+
+/**
+ * Tournament reset notification sent from server to all clients
+ */
+export interface TournamentResetMessage {
+  type: 'tournament:reset';
+  payload: {
+    timestamp: Date;
+  };
+}
+
+/**
  * Socket authentication data sent from client to server on connection
  */
 export interface SocketAuth {
@@ -157,7 +175,9 @@ export type WebSocketMessage =
   | StartTournamentMessage 
   | ErrorMessage
   | VoteLockedMessage
-  | VoteRejectedMessage;
+  | VoteRejectedMessage
+  | ResetTournamentMessage
+  | TournamentResetMessage;
 
 // ============================================================================
 // Repository Interface (for Liskov Substitution Principle)
