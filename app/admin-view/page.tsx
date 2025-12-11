@@ -85,7 +85,6 @@ export default function AdminView() {
 
     try {
       const result = await resetTournament();
-      console.log('Reset completed:', result);
       
       // Show success message
       setResetSuccess(true);

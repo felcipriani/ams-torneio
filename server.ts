@@ -30,11 +30,9 @@ app.prepare().then(() => {
 
   // Initialize WebSocket server
   const wsServer = new WebSocketServer(httpServer);
-  console.log('WebSocket server initialized');
 
   // Start listening
   httpServer.listen(port, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
-    console.log(`> WebSocket server ready with ${wsServer.getConnectedClientCount()} clients`);
   });
 });

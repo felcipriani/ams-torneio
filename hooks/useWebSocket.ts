@@ -72,7 +72,6 @@ export function useWebSocket() {
     }
 
     const delay = getReconnectDelay(reconnectAttemptRef.current);
-    console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttemptRef.current + 1}/${RECONNECT_CONFIG.maxAttempts})`);
 
     reconnectTimeoutRef.current = setTimeout(() => {
       reconnectAttemptRef.current += 1;
@@ -103,7 +102,6 @@ export function useWebSocket() {
 
     // Connection event
     socket.on('connect', () => {
-      console.log('WebSocket connected');
       setIsConnected(true);
       setError(null);
       reconnectAttemptRef.current = 0; // Reset reconnection counter on successful connection
@@ -117,7 +115,6 @@ export function useWebSocket() {
 
     // Disconnection event
     socket.on('disconnect', (reason) => {
-      console.log('WebSocket disconnected:', reason);
       setIsConnected(false);
 
       // Attempt reconnection if disconnection was not intentional
@@ -140,7 +137,6 @@ export function useWebSocket() {
 
     // State update event
     socket.on('state:update', (state: TournamentState) => {
-      console.log('Received state update:', state.status);
       setTournamentState(state);
       
       // Reset vote state when match changes
@@ -153,7 +149,6 @@ export function useWebSocket() {
 
     // Vote locked event - user successfully voted
     socket.on('vote:locked', (payload: { matchId: string }) => {
-      console.log('Vote locked for match:', payload.matchId);
       setHasVotedInCurrentMatch(true);
     });
 
@@ -174,8 +169,6 @@ export function useWebSocket() {
 
     // Tournament reset event - clear all local state
     socket.on('tournament:reset', (payload: { timestamp: Date }) => {
-      console.log('Tournament reset received at:', payload.timestamp);
-      
       // Clear tournament state (returns to waiting screen)
       setTournamentState(null);
       
@@ -247,11 +240,8 @@ export function useWebSocket() {
         return;
       }
 
-      console.log('Resetting tournament');
-
       // Set up one-time listeners for success/error responses
       const successHandler = (response: { message: string; deletedFiles: number; errors: any[] }) => {
-        console.log('Reset successful:', response);
         socketRef.current?.off('error', errorHandler);
         resolve(response);
       };
@@ -289,8 +279,6 @@ export function useWebSocket() {
 
     // Cleanup function
     return () => {
-      console.log('Cleaning up WebSocket connection');
-      
       // Clear reconnection timeout
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current);

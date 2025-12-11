@@ -71,7 +71,6 @@ export class WebSocketServer {
       
       // Extract or generate session token
       const sessionToken = this.getSessionTokenFromSocket(socket);
-      console.log(`Session token for ${socket.id}: ${sessionToken.substring(0, 8)}...`);
       
       // Add socket to connection map
       this.connectionMap.addConnection(sessionToken, socket.id);
@@ -174,7 +173,6 @@ export class WebSocketServer {
    * @param state - Tournament state to broadcast
    */
   private broadcastState(state: TournamentState): void {
-    console.log(`Broadcasting state to ${this.connectedClients.size} clients`);
     this.io.emit('state:update', state);
   }
 
@@ -239,7 +237,6 @@ export class WebSocketServer {
       this.emitToUser(sessionToken, 'vote:locked', lockedMessage.payload);
 
       // State will be broadcast automatically via onStateChange callback
-      console.log(`Vote processed: ${choice} for match ${matchId} by user ${sessionToken.substring(0, 8)}...`);
     } catch (error) {
       console.error('Error processing vote:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process vote';
@@ -285,7 +282,6 @@ export class WebSocketServer {
       await this.tournamentManager.initializeTournament(memes, votingTimeSeconds);
 
       // State will be broadcast automatically via onStateChange callback
-      console.log(`Tournament started with ${memes.length} memes, ${votingTimeSeconds}s voting time`);
     } catch (error) {
       console.error('Error starting tournament:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start tournament';
@@ -304,15 +300,11 @@ export class WebSocketServer {
     payload: ResetTournamentMessage['payload']
   ): Promise<void> {
     try {
-      console.log('Processing tournament reset request');
-
       // Call tournamentManager.resetTournament() to get image URLs
       const imageUrls = await this.tournamentManager.resetTournament();
-      console.log(`Reset tournament, found ${imageUrls.length} images to delete`);
 
       // Call file deletion utility with image URLs
       const deleteResult = await deleteUploadedImages(imageUrls);
-      console.log(`Deleted ${deleteResult.deletedCount} images, ${deleteResult.errors.length} errors`);
 
       // Log any file deletion errors (but don't fail the reset)
       if (deleteResult.errors.length > 0) {
@@ -330,7 +322,6 @@ export class WebSocketServer {
         }
       };
       this.io.emit('tournament:reset', resetMessage.payload);
-      console.log(`Broadcast reset notification to ${this.connectedClients.size} clients`);
 
       // Send success response to admin client
       socket.emit('admin:reset:success', {
