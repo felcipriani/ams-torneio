@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { WaitingScreen } from '@/components/WaitingScreen';
@@ -8,6 +9,58 @@ import { WinnerScreen } from '@/components/WinnerScreen';
 
 export default function Home() {
   const { tournamentState, isConnected, error, castVote, hasVotedInCurrentMatch } = useWebSocket();
+  const previousStatusRef = useRef<string | null>(null);
+
+  // Security Layer 1: Clear session token on page mount
+  useEffect(() => {
+    const clearSessionToken = async () => {
+      try {
+        await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'clear' })
+        });
+        console.log('[Security] Session token cleared on page load');
+      } catch (error) {
+        console.error('[Security] Failed to clear session token:', error);
+      }
+    };
+
+    clearSessionToken();
+  }, []);
+
+  // Security Layer 2: Generate new token when tournament starts
+  useEffect(() => {
+    const generateNewToken = async () => {
+      try {
+        const response = await fetch('/api/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'generate' })
+        });
+        
+        if (response.ok) {
+          console.log('[Security] New session token generated for tournament');
+          // Force reconnection with new token
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('[Security] Failed to generate new session token:', error);
+      }
+    };
+
+    // Detect tournament start (transition from WAITING to DUEL_IN_PROGRESS)
+    if (tournamentState) {
+      const currentStatus = tournamentState.status;
+      
+      if (previousStatusRef.current === 'WAITING' && currentStatus === 'DUEL_IN_PROGRESS') {
+        console.log('[Security] Tournament started, generating new session token');
+        generateNewToken();
+      }
+      
+      previousStatusRef.current = currentStatus;
+    }
+  }, [tournamentState]);
 
   // Show loading state while connecting
   if (!isConnected && !tournamentState) {

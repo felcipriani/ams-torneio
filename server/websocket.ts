@@ -193,6 +193,7 @@ export class WebSocketServer {
 
   /**
    * Handle vote:cast event from client
+   * Security Layer 3: Validates session token presence before processing vote
    * Checks vote locks before processing, emits vote:rejected if already voted,
    * records vote lock and emits vote:locked after successful vote
    * @param socket - Socket that sent the vote
@@ -213,6 +214,14 @@ export class WebSocketServer {
 
       if (choice !== 'LEFT' && choice !== 'RIGHT') {
         this.sendError(socket, 'Invalid vote choice', 'INVALID_CHOICE');
+        return;
+      }
+
+      // Security Layer 3: Validate session token presence
+      const auth = socket.handshake.auth;
+      if (!auth || !auth.sessionToken || typeof auth.sessionToken !== 'string') {
+        console.warn(`[SECURITY] Vote attempt without session token - Socket: ${socket.id}`);
+        this.sendError(socket, 'Session token required', 'MISSING_SESSION');
         return;
       }
 

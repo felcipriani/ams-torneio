@@ -197,11 +197,48 @@ export function useWebSocket() {
   }, [attemptReconnect]);
 
   /**
+   * Regenerate session token and reconnect
+   * Used for recovery from invalid token errors
+   */
+  const regenerateSessionToken = useCallback(async (): Promise<boolean> => {
+    try {
+      console.log('[Security] Regenerating session token...');
+      
+      const response = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate' })
+      });
+
+      if (!response.ok) {
+        console.error('[Security] Failed to regenerate session token');
+        return false;
+      }
+
+      const data = await response.json();
+      console.log('[Security] Session token regenerated:', data.token?.substring(0, 8) + '...');
+
+      // Reconnect with new token
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current.auth = { sessionToken: data.token };
+        socketRef.current.connect();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[Security] Error regenerating session token:', error);
+      return false;
+    }
+  }, []);
+
+  /**
    * Cast a vote for a meme in the current match
+   * Security Layer 3: Automatically regenerates token and retries if vote fails due to missing token
    * @param matchId - ID of the match to vote in
    * @param choice - Vote choice ('LEFT' or 'RIGHT')
    */
-  const castVote = useCallback((matchId: string, choice: VoteChoice) => {
+  const castVote = useCallback(async (matchId: string, choice: VoteChoice) => {
     if (!socketRef.current || !isConnected) {
       console.error('Cannot cast vote: not connected');
       setError('Not connected to server');
@@ -209,11 +246,46 @@ export function useWebSocket() {
     }
 
     console.log(`Casting vote: ${choice} for match ${matchId}`);
+    
+    // Set up one-time error handler for this vote
+    const voteErrorHandler = async (errorPayload: { message: string; code: string }) => {
+      // Check if error is due to missing/invalid session token
+      if (errorPayload.code === 'INVALID_SESSION' || errorPayload.code === 'MISSING_SESSION') {
+        console.log('[Security] Vote failed due to invalid session, regenerating token...');
+        
+        // Regenerate token
+        const success = await regenerateSessionToken();
+        
+        if (success) {
+          // Retry vote after short delay to allow reconnection
+          setTimeout(() => {
+            console.log('[Security] Retrying vote with new session token...');
+            if (socketRef.current && isConnected) {
+              socketRef.current.emit('vote:cast', { matchId, choice });
+            }
+          }, 500);
+        } else {
+          setError('Failed to authenticate. Please refresh the page.');
+        }
+      }
+    };
+
+    // Attach error handler for this vote
+    socketRef.current.once('error', voteErrorHandler);
+
+    // Emit vote
     socketRef.current.emit('vote:cast', {
       matchId,
       choice
     });
-  }, [isConnected]);
+
+    // Clean up error handler after 5 seconds if no error occurred
+    setTimeout(() => {
+      if (socketRef.current) {
+        socketRef.current.off('error', voteErrorHandler);
+      }
+    }, 5000);
+  }, [isConnected, regenerateSessionToken]);
 
   /**
    * Start the tournament (admin only)
