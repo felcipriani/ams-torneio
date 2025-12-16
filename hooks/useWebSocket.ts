@@ -139,10 +139,17 @@ export function useWebSocket() {
     socket.on('state:update', (state: TournamentState) => {
       setTournamentState(state);
       
-      // Reset vote state when match changes
+      // Check if match has changed
       const newMatchId = state.currentMatch?.id || null;
-      if (newMatchId !== currentMatchIdRef.current) {
-        currentMatchIdRef.current = newMatchId;
+      const matchChanged = newMatchId !== currentMatchIdRef.current;
+      currentMatchIdRef.current = newMatchId;
+      
+      // Update vote state based on server information
+      if (state.userVotedInCurrentMatch !== undefined) {
+        // Server provided personalized voting information (e.g., on reconnect)
+        setHasVotedInCurrentMatch(state.userVotedInCurrentMatch);
+      } else if (matchChanged) {
+        // Match changed but no personalized info - reset vote state
         setHasVotedInCurrentMatch(false);
       }
     });

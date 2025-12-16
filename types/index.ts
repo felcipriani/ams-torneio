@@ -67,6 +67,7 @@ export interface TournamentState {
   config: {
     votingTimeSeconds: number;
   };
+  userVotedInCurrentMatch?: boolean; // Optional: indicates if current user has voted in current match
 }
 
 // ============================================================================

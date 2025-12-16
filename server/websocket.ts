@@ -153,13 +153,28 @@ export class WebSocketServer {
 
   /**
    * Send current tournament state to a specific client
+   * Includes personalized information about whether the user has voted in the current match
    * @param socket - Socket to send state to
    */
   private async sendStateToClient(socket: Socket): Promise<void> {
     try {
       const state = await this.tournamentManager.getState();
       if (state) {
-        socket.emit('state:update', state);
+        // Get session token for this socket
+        const sessionToken = this.getSessionTokenFromSocket(socket);
+        
+        // Check if user has voted in current match
+        const userVotedInCurrentMatch = state.currentMatch 
+          ? this.voteLockManager.hasVoted(sessionToken, state.currentMatch.id)
+          : false;
+        
+        // Send state with personalized voting information
+        const personalizedState: TournamentState = {
+          ...state,
+          userVotedInCurrentMatch
+        };
+        
+        socket.emit('state:update', personalizedState);
       }
     } catch (error) {
       console.error('Error sending state to client:', error);
