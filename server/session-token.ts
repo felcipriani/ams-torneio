@@ -54,6 +54,11 @@ export class SessionTokenGenerator {
     // Try to get IP from socket handshake
     const handshake = socket.handshake;
     
+    // Debug: Log what we're receiving
+    console.log('[DEBUG] Socket handshake address:', handshake.address);
+    console.log('[DEBUG] X-Forwarded-For:', handshake.headers['x-forwarded-for']);
+    console.log('[DEBUG] X-Real-IP:', handshake.headers['x-real-ip']);
+    
     // Check X-Forwarded-For header (proxy/load balancer)
     const xForwardedFor = handshake.headers['x-forwarded-for'];
     if (xForwardedFor) {
@@ -65,6 +70,7 @@ export class SessionTokenGenerator {
       
       const clientIp = ips[0];
       if (this.isValidIPv4(clientIp)) {
+        console.log('[DEBUG] Using X-Forwarded-For:', clientIp);
         return clientIp;
       }
     }
@@ -72,20 +78,27 @@ export class SessionTokenGenerator {
     // Check X-Real-IP header (alternative proxy header)
     const xRealIp = handshake.headers['x-real-ip'];
     if (xRealIp && typeof xRealIp === 'string' && this.isValidIPv4(xRealIp)) {
+      console.log('[DEBUG] Using X-Real-IP:', xRealIp);
       return xRealIp;
     }
     
     // Try direct socket address
     const address = handshake.address;
     if (address) {
+      console.log('[DEBUG] Raw address:', address);
+      
       // Remove IPv6 prefix if present (::ffff:192.168.1.1 -> 192.168.1.1)
       const cleanAddress = address.replace(/^::ffff:/, '');
+      console.log('[DEBUG] Clean address:', cleanAddress);
+      
       if (this.isValidIPv4(cleanAddress)) {
+        console.log('[DEBUG] Using clean address:', cleanAddress);
         return cleanAddress;
       }
       
       // Handle IPv6 localhost (::1) - convert to IPv4 localhost
       if (cleanAddress === '::1' || address === '::1') {
+        console.log('[DEBUG] Converting IPv6 localhost to IPv4');
         return '127.0.0.1';
       }
     }
@@ -94,14 +107,18 @@ export class SessionTokenGenerator {
     const request = socket.request as any;
     if (request?.connection?.remoteAddress) {
       const remoteAddr = request.connection.remoteAddress;
+      console.log('[DEBUG] Remote address from connection:', remoteAddr);
+      
       const cleanRemote = remoteAddr.replace(/^::ffff:/, '');
       
       if (this.isValidIPv4(cleanRemote)) {
+        console.log('[DEBUG] Using remote address:', cleanRemote);
         return cleanRemote;
       }
       
       // Handle IPv6 localhost
       if (cleanRemote === '::1' || remoteAddr === '::1') {
+        console.log('[DEBUG] Converting IPv6 localhost from connection to IPv4');
         return '127.0.0.1';
       }
     }
