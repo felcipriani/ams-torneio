@@ -12,6 +12,76 @@ describe('SessionTokenGenerator', () => {
   });
 
   /**
+   * Bug Fix Test: Empty Salt Should Still Generate Different Tokens
+   * 
+   * When SESSION_TOKEN_SALT is empty, different IPs should still generate
+   * different tokens. This prevents users from different IPs being treated
+   * as the same user.
+   */
+  describe('Bug Fix: Empty Salt Handling', () => {
+    it('should generate different tokens for different IPs even with empty salt', () => {
+      const generatorWithEmptySalt = new SessionTokenGenerator('');
+      
+      fc.assert(
+        fc.property(
+          // Generate two different IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4_1, ipv4_2) => {
+            // Skip if IPs are the same
+            fc.pre(ipv4_1 !== ipv4_2);
+
+            const token1 = generatorWithEmptySalt.generateToken(ipv4_1);
+            const token2 = generatorWithEmptySalt.generateToken(ipv4_2);
+
+            // Tokens MUST be different even with empty salt
+            expect(token1).not.toBe(token2);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
+    it('should still be deterministic with empty salt', () => {
+      const generatorWithEmptySalt = new SessionTokenGenerator('');
+      
+      fc.assert(
+        fc.property(
+          // Generate random valid IPv4 addresses
+          fc.tuple(
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 }),
+            fc.integer({ min: 0, max: 255 })
+          ).map(([a, b, c, d]) => `${a}.${b}.${c}.${d}`),
+          (ipv4) => {
+            // Generate token multiple times
+            const token1 = generatorWithEmptySalt.generateToken(ipv4);
+            const token2 = generatorWithEmptySalt.generateToken(ipv4);
+            const token3 = generatorWithEmptySalt.generateToken(ipv4);
+
+            // All tokens should be identical (deterministic)
+            expect(token1).toBe(token2);
+            expect(token2).toBe(token3);
+            expect(token1).toBe(token3);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
    * Feature: vote-once-per-user, Property 1: Session Token Determinism
    * Validates: Requirements 2.2, 2.3
    * 

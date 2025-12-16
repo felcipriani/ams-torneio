@@ -27,6 +27,16 @@ export class SessionTokenGenerator {
    * @returns Deterministic session token (hex string)
    */
   generateToken(ipv4: string): string {
+    // If no salt is configured, use the IP directly as the token
+    // This ensures different IPs generate different tokens even without a salt
+    if (!this.salt) {
+      // Hash the IP with SHA256 (without HMAC) for basic obfuscation
+      const hash = crypto.createHash('sha256');
+      hash.update(ipv4);
+      return hash.digest('hex');
+    }
+    
+    // Use HMAC-SHA256 with salt for proper security
     const hmac = crypto.createHmac('sha256', this.salt);
     hmac.update(ipv4);
     return hmac.digest('hex');
