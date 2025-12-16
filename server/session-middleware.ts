@@ -50,8 +50,14 @@ export class SessionMiddleware {
     if (remoteAddress) {
       // Remove IPv6 prefix if present (::ffff:192.168.1.1 -> 192.168.1.1)
       const cleanAddress = remoteAddress.replace(/^::ffff:/, '');
+      
       if (this.isValidIPv4(cleanAddress)) {
         return cleanAddress;
+      }
+      
+      // Handle IPv6 localhost (::1) - convert to IPv4 localhost
+      if (cleanAddress === '::1' || remoteAddress === '::1') {
+        return '127.0.0.1';
       }
     }
     
