@@ -83,6 +83,27 @@ export class SessionTokenGenerator {
       if (this.isValidIPv4(cleanAddress)) {
         return cleanAddress;
       }
+      
+      // Handle IPv6 localhost (::1) - convert to IPv4 localhost
+      if (cleanAddress === '::1' || address === '::1') {
+        return '127.0.0.1';
+      }
+    }
+    
+    // Try socket.request.connection.remoteAddress (alternative source)
+    const request = socket.request as any;
+    if (request?.connection?.remoteAddress) {
+      const remoteAddr = request.connection.remoteAddress;
+      const cleanRemote = remoteAddr.replace(/^::ffff:/, '');
+      
+      if (this.isValidIPv4(cleanRemote)) {
+        return cleanRemote;
+      }
+      
+      // Handle IPv6 localhost
+      if (cleanRemote === '::1' || remoteAddr === '::1') {
+        return '127.0.0.1';
+      }
     }
     
     // Fallback to socket.id if IPv4 cannot be determined
